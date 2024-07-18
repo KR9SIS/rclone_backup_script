@@ -49,35 +49,37 @@ def get_modified_times(CWD: str):
             try:
                 cur.execute(
                     """
-                     DROP TABLE IF EXISTS Times;
-                     DROP TABLE IF EXISTS Folders;
+                    DROP TABLE IF EXISTS Times;
+                    DROP TABLE IF EXISTS Folders;
 
-                     CREATE TABLE Folders(
-                         folder_path VARCHAR(255) PRIMARY KEY
-                     );
+                    CREATE TABLE Folders(
+                        folder_path VARCHAR(255) PRIMARY KEY
+                    );
+                   
+                    CREATE TABLE Times(
+                        folder_path VARCHAR(255),
+                        file_path VARCHAR(255) NOT NULL,
+                        modification_time CHAR(16) NOT NULL,
+                        FOREIGN KEY (folder_path) REFERENCES Folders(folder_path)
 
-                     CREATE TABLE Times(
-                         folder_path VARCHAR(255),
-                         file_path VARCHAR(255) NOT NULL,
-                         modification_time CHAR(16) NOT NULL,
-                         FOREIGN KEY (folder_path) REFERENCES Folders(folder_path)
-
-                     );
-                     """
+                    );
+                    """
                 )
             except Exception as e:
                 print(f"Exception \n{e} \noccured in Drop Tables")
                 conn.rollback()
 
+            try:
+                cur.execute(
+                    "INSERT INTO Folders (folder_path) VALUES (%s)", ("/home/kr9sis/",)
+                )  # Add parent folder for root dir
+            except Exception as e:
+                print(
+                    f"Exception occured when trying to add /home/kr9sis/ to DB\nException\n{e}"
+                )
+
             for file in dirs_mod_times:
                 try:
-                    # index = file[1].rfind("/", 0, -1)
-                    # parent_dir = file[1][0 : index + 1]
-
-                    # cur.execute(
-                    #    "SELECT 1 FROM Folders WHERE folder_path = %s", (parent_dir,)
-                    # )
-                    # if cur.fetchone() is None:
                     cur.execute(
                         "INSERT INTO Folders (folder_path) VALUES (%s)",
                         (file[1],),
@@ -87,7 +89,9 @@ def get_modified_times(CWD: str):
                     print(
                         f"Exception \n{e}\noccured in Insert Into Folders when trying to insert\n{file[1]}"
                     )
-                """
+                # """
+
+            for file in dirs_mod_times:
                 try:
                     index = file[1].rfind("/", 0, -1)
                     parent_dir = file[1][0 : index + 1]
@@ -98,10 +102,11 @@ def get_modified_times(CWD: str):
                     )
                 except Exception as e:
                     print(
-                        f"Exception \n{e} \noccured in Insert Into Folders when trying to insert \nfolder_path: {parent_dir}, \nfile_path: {file[1]} \nand modification time: {file[0]}"
+                        f"\n\nException occurred in Insert Into Times: \n{e} \n\nWhen trying to insert: \nfolder_path:\t {parent_dir} \nfile_path:\t {file[1]} \nmod time:\t {file[0]}"
                     )
                     conn.rollback()
-                """
+                # """
+
             for file in files_mod_times:
                 try:
                     index = file[1].rfind("/")
@@ -113,7 +118,7 @@ def get_modified_times(CWD: str):
                     )
                 except Exception as e:
                     print(
-                        f"Exception:\n{e}\noccured in Insert Into Folders when trying to insert  \nfolder_path: {parent_dir}, \nfile_path: {file[1]} \nand modification time: {file[0]}"
+                        f"Exception:\n{e}\noccured in Insert Into Times when trying to insert  \nfolder_path: {parent_dir}, \nfile_path: {file[1]} \nand modification time: {file[0]}"
                     )
                     conn.rollback()
 
