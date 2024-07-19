@@ -7,11 +7,10 @@ CREATE TABLE Folders(
 );
 
 CREATE TABLE Times(
-    --ID SERIAL PRIMARY KEY,
-    folder_path VARCHAR(255),
-    file_path VARCHAR(255) NOT NULL,
+    parent_path VARCHAR(255),
+    file_path VARCHAR(255) PRIMARY KEY,
     modification_time CHAR(16) NOT NULL,
-    FOREIGN KEY (folder_path) REFERENCES Folders(folder_path)
+    FOREIGN KEY (parent_path) REFERENCES Folders(folder_path)
 
 );
 
@@ -28,10 +27,15 @@ SELECT * FROM Times WHERE Times.folder_path = '/parent/child/'
 
 
 SELECT * FROM Times
-WHERE folder_path = '/home/kr9sis/PDrive/Code/Py/';
+WHERE modification_time = '0000-00-00 00:00';
 
 SELECT * FROM Times
 WHERE folder_path = '/home/kr9sis/PDrive/Barnabókinn mín/'
 
+SELECT * FROM Times
+WHERE parent_path = '/home/kr9sis/PDrive/School/MK/2019/Haust 2019/ALÞV2BA05/Viðfangsefni 8/'
+
 SELECT * FROM Folders;
-SELECT * FROM Times;
+SELECT * FROM Times LIMIT 30;
+
+Add something
