@@ -57,10 +57,10 @@ def get_modified_times(CWD: str):
                     );
                    
                     CREATE TABLE Times(
-                        folder_path VARCHAR(255),
-                        file_path VARCHAR(255) NOT NULL,
+                        parent_path VARCHAR(255),
+                        file_path VARCHAR(255) PRIMARY KEY,
                         modification_time CHAR(16) NOT NULL,
-                        FOREIGN KEY (folder_path) REFERENCES Folders(folder_path)
+                        FOREIGN KEY (parent_path) REFERENCES Folders(folder_path)
 
                     );
                     """
@@ -97,12 +97,12 @@ def get_modified_times(CWD: str):
                     parent_dir = file[1][0 : index + 1]
                     # if file[1] != CWD:
                     cur.execute(
-                        "INSERT INTO Times (folder_path, file_path, modification_time) VALUES (%s, %s, %s)",
+                        "INSERT INTO Times (parent_path, file_path, modification_time) VALUES (%s, %s, %s)",
                         (parent_dir, file[1], file[0]),
                     )
                 except Exception as e:
                     print(
-                        f"\n\nException occurred in Insert Into Times: \n{e} \n\nWhen trying to insert: \nfolder_path:\t {parent_dir} \nfile_path:\t {file[1]} \nmod time:\t {file[0]}"
+                        f"\n\nException occurred in Insert Into Times: \n{e} \n\nWhen trying to insert: \nparent_path:\t {parent_dir} \nfile_path:\t {file[1]} \nmod time:\t {file[0]}"
                     )
                     conn.rollback()
                 # """
@@ -113,12 +113,12 @@ def get_modified_times(CWD: str):
                     parent_dir = file[1][0 : index + 1]
 
                     cur.execute(
-                        "INSERT INTO Times (folder_path, file_path, modification_time) VALUES (%s, %s, %s)",
+                        "INSERT INTO Times (parent_path, file_path, modification_time) VALUES (%s, %s, %s)",
                         (parent_dir, file[1], file[0]),
                     )
                 except Exception as e:
                     print(
-                        f"Exception:\n{e}\noccured in Insert Into Times when trying to insert  \nfolder_path: {parent_dir}, \nfile_path: {file[1]} \nand modification time: {file[0]}"
+                        f"Exception:\n{e}\noccured in Insert Into Times when trying to insert  \nparent_path: {parent_dir}, \nfile_path: {file[1]} \nand modification time: {file[0]}"
                     )
                     conn.rollback()
 
