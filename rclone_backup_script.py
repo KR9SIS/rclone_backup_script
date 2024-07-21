@@ -166,9 +166,9 @@ class RCloneBackupScript:
             "-v",
             "--log-file",
             "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
-            "--dry-run",
         ]
         for file in self.modified:
+            file = file[19:]
             command.append("--include")
             command.append(file)
 
