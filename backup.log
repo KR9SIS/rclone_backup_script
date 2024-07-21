@@ -30,3 +30,8 @@ Elapsed time:         9.4s
 Transferred:   	          0 B / 0 B, -, 0 B/s, ETA -
 Elapsed time:         4.1s
 
+2024/07/21 11:32:44 INFO  : There was nothing to transfer
+2024/07/21 11:32:44 NOTICE: 
+Transferred:   	          0 B / 0 B, -, 0 B/s, ETA -
+Elapsed time:         9.7s
+

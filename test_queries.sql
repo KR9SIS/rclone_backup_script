@@ -1,4 +1,5 @@
 -- ALTER SEQUENCE times_id_seq RESTART WITH 1;
+DROP SEQUENCE BackupNum;
 DROP TABLE IF EXISTS Times;
 DROP TABLE IF EXISTS Folders;
 
@@ -13,6 +14,8 @@ CREATE TABLE Times(
     FOREIGN KEY (parent_path) REFERENCES Folders(folder_path)
 
 );
+
+CREATE SEQUENCE BackupNum START 1;
 
 INSERT INTO Folders(folder_path) VALUES('/parent/');
 INSERT INTO Folders(folder_path) VALUES('/parent/child/');
@@ -39,6 +42,6 @@ SELECT * FROM Folders;
 SELECT * FROM Times LIMIT 30;
 
 SELECT * FROM Times
-WHERE parent_path = '/home/kr9sis/PDrive/Code/Py/rclone_backup_script/';
+WHERE parent_path = '/home/kr9sis/PDrive/Code/Py/rclone_backup_script/Older Versions/';
 
 SELECT DISTINCT parent_path FROM Times;

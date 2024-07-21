@@ -3,7 +3,7 @@ from os.path import isfile, isdir
 import psycopg
 
 
-def get_modified_times(CWD: str):
+def setup_database(CWD: str):
     try:
         process_output = run(
             ["du", "--time", "--all"],
@@ -49,6 +49,7 @@ def get_modified_times(CWD: str):
             try:
                 cur.execute(
                     """
+                    DROP SEQUENCE IF EXISTS BackupNum;
                     DROP TABLE IF EXISTS Times;
                     DROP TABLE IF EXISTS Folders;
 
@@ -63,6 +64,8 @@ def get_modified_times(CWD: str):
                         FOREIGN KEY (parent_path) REFERENCES Folders(folder_path)
 
                     );
+
+                    CREATE SEQUENCE BackupNum START 1;
                     """
                 )
             except Exception as e:
@@ -126,4 +129,4 @@ def get_modified_times(CWD: str):
 
 
 cwd = "/home/kr9sis/PDrive/"
-get_modified_times(cwd)
+setup_database(cwd)
