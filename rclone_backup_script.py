@@ -156,6 +156,23 @@ class RCloneBackupScript:
         else:
             self.check_if_modified(cwd, files)
 
+    def rclone_sync(self, source_path, destination_path):
+        command = [
+            "/usr/bin/rclone",
+            "sync",
+            source_path,
+            destination_path,
+            "-v",
+            "--log-file",
+            "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
+            "--dry-run",
+        ]
+        for file in self.modified:
+            command.append("--include")
+            command.append(file)
+
+        run(command)
+
     def update_mod_times_in_db(self):
         with self.conn.cursor() as cur:
             for file in self.modified:
@@ -184,22 +201,8 @@ class RCloneBackupScript:
                     (mod_time, file),
                 )
 
-    def rclone_sync(self, source_path, destination_path):
-        command = [
-            "/usr/bin/rclone",
-            "sync",
-            source_path,
-            destination_path,
-            "-v",
-            "--log-file",
-            "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
-            "--dry-run",
-        ]
-        for file in self.modified:
-            command.append("--include")
-            command.append(file)
-
-        run(command)
+    def backup_log_to_git():
+        pass
 
 
 RCloneBackupScript()
