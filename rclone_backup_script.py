@@ -5,12 +5,15 @@ from psycopg import connect
 
 class RCloneBackupScript:
     def __init__(self) -> None:
-        starting_directory = "/home/kr9sis/PDrive/"
+        local_directory = "/home/kr9sis/PDrive/"
+        remote_directory = "PDrive:"
         self.modified: set[str] = set()
         with connect("dbname=FileModifyTimes user=postgres") as self.conn:
-            self.get_modified_files(cwd=starting_directory)
-            self.update_mod_times()
-            self.rclone_sync()
+            self.get_modified_files(cwd=local_directory)
+            self.rclone_sync(
+                source_path=local_directory, destination_path=remote_directory
+            )
+            self.update_mod_times_in_db()
         ""
 
     def get_files_in_cwd(self, cwd) -> str:
@@ -153,7 +156,7 @@ class RCloneBackupScript:
         else:
             self.check_if_modified(cwd, files)
 
-    def update_mod_times(self):
+    def update_mod_times_in_db(self):
         with self.conn.cursor() as cur:
             for file in self.modified:
                 try:
@@ -181,9 +184,7 @@ class RCloneBackupScript:
                     (mod_time, file),
                 )
 
-    def rclone_sync(self):
-        source_path = "/home/kr9sis/PDrive/"
-        destination_path = "KHS-PD:"
+    def rclone_sync(self, source_path, destination_path):
         command = [
             "/usr/bin/rclone",
             "sync",
