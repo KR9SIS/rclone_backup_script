@@ -39,7 +39,6 @@ class RCloneBackupScript:
 
         diff = local_files.symmetric_difference(cloud_files)
         self.modified = self.modified.union(diff)
-        # with psycopg.connect("dbname=FileModifyTimes user=postgres") as conn:
         with self.conn.cursor() as cur:
             for file in diff:
                 if file not in cloud_files:  # File was created locally
@@ -78,6 +77,7 @@ class RCloneBackupScript:
                             """,
                             (file,),
                         )
+
                         cur.execute(
                             """
                             DELETE FROM Folders
@@ -114,7 +114,6 @@ class RCloneBackupScript:
         files = tmp
         del tmp
 
-        # with psycopg.connect("dbname=FileModifyTimes user=postgres") as conn:
         with self.conn.cursor() as cur:
             try:
                 cur.execute(
@@ -157,11 +156,22 @@ class RCloneBackupScript:
     def update_mod_times(self):
         with self.conn.cursor() as cur:
             for file in self.modified:
-                mod_time = run(
-                    ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{file}"]
-                )
-                mod_time = " ".join(mod_time.split(" ")[5:6])
-
+                try:
+                    mod_time = run(
+                        ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{file}"],
+                        check=True,
+                        capture_output=True,
+                        timeout=10,
+                    )
+                    mod_time = mod_time.stdout.decode("utf-8")
+                    mod_time = " ".join(mod_time.split(" ")[5:7]).strip("'")
+                except CalledProcessError as e:
+                    if (
+                        e.returncode == 2
+                    ):  # File was modified locally so it is in the DB but not the local filesystem
+                        continue
+                    else:
+                        raise Exception  # Should never go here, but if it does then I want to stop the program
                 cur.execute(
                     """
                     UPDATE Times
@@ -181,12 +191,13 @@ class RCloneBackupScript:
             destination_path,
             "-v",
             "--log-file",
-            "/home/kr9sis/PDrive/backup_script/backup.log",
+            "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
             "--dry-run",
         ]
         for file in self.modified:
-            command.append("--included")
+            command.append("--include")
             command.append(file)
+
         run(command)
 
 

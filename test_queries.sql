@@ -38,4 +38,7 @@ WHERE parent_path = '/home/kr9sis/PDrive/School/MK/2019/Haust 2019/ALÞV2BA05/Vi
 SELECT * FROM Folders;
 SELECT * FROM Times LIMIT 30;
 
-Add something
+SELECT * FROM Times
+WHERE parent_path = '/home/kr9sis/PDrive/Code/Py/rclone_backup_script/';
+
+SELECT DISTINCT parent_path FROM Times;
