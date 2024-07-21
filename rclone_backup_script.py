@@ -14,6 +14,7 @@ class RCloneBackupScript:
                 source_path=local_directory, destination_path=remote_directory
             )
             self.update_mod_times_in_db()
+            self.backup_log_to_git()
         ""
 
     def get_files_in_cwd(self, cwd) -> str:
@@ -171,7 +172,7 @@ class RCloneBackupScript:
             command.append("--include")
             command.append(file)
 
-        run(command)
+        run(command, check=True, timeout=1800)
 
     def update_mod_times_in_db(self):
         with self.conn.cursor() as cur:
@@ -201,8 +202,37 @@ class RCloneBackupScript:
                     (mod_time, file),
                 )
 
-    def backup_log_to_git():
-        pass
+    def backup_log_to_git(self):
+        with self.conn.cursor() as cur:
+            backup_num = cur.execute(
+                """
+                SELECT nextval('BackupNum');
+                """
+            ).fetchall()
+
+        backup_num = backup_num[0][0]
+        if backup_num % 10 == 0:
+            run(
+                [
+                    "git",
+                    "add",
+                    "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
+                ],
+                check=True,
+                timeout=10,
+            )
+            run(
+                [
+                    "git",
+                    "commit",
+                    "-m" f"Backup #{backup_num} made, syncing to github",
+                ],
+                check=True,
+                timeout=10,
+            )
+            run(["git", "push"])
+
+        ""
 
 
 RCloneBackupScript()
