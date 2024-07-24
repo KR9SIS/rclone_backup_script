@@ -1,23 +1,41 @@
-from subprocess import run, CalledProcessError, TimeoutExpired
-from os.path import isfile, isdir
+"""
+modules docstring
+"""
+
+import sys  # TODO: Remove when program works
+from os.path import isdir, isfile
+from subprocess import CalledProcessError, TimeoutExpired, run
+
 from psycopg import connect
 
 
 class RCloneBackupScript:
+    """
+    Script to check if files in a local directory have been modified and if so
+    then send them and their modifications to a remote at PDrive:
+    """
+
     def __init__(self) -> None:
+        print("Entered Init")
         local_directory = "/home/kr9sis/PDrive/"
         remote_directory = "PDrive:"
         self.modified: set[str] = set()
         with connect("dbname=FileModifyTimes user=postgres") as self.conn:
+            print("Entering get_modified_files")
             self.get_modified_files(cwd=local_directory)
+            print("Entering rclone_sync")
             self.rclone_sync(
                 source_path=local_directory, destination_path=remote_directory
             )
+            print("Entering update_mod_times_in_db")
             self.update_mod_times_in_db()
+            print("Entering backup_log_to_git")
             self.backup_log_to_git()
-        ""
 
     def get_files_in_cwd(self, cwd) -> str:
+        """
+        Get all files within CWD and all subdirectories
+        """
         try:
             files = run(
                 ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{cwd}"],
@@ -38,8 +56,11 @@ class RCloneBackupScript:
         return files
 
     def add_or_del_from_db(self, files, db_files):
-        local_files: set[str] = {val for val in files}
-        cloud_files: set[str] = {val for val in db_files}
+        """
+        Clean up difference between local directory and database
+        """
+        local_files: set[str] = set(files)
+        cloud_files: set[str] = set(db_files)
 
         diff = local_files.symmetric_difference(cloud_files)
         self.modified = self.modified.union(diff)
@@ -102,7 +123,12 @@ class RCloneBackupScript:
 
             self.conn.commit()
 
-    def check_if_modified(self, cwd: str, files: str) -> None:
+    def check_if_modified(self, cwd: str, files: str):
+        """
+        Check the given files and see if they have been
+        modified or not if they have been then either check its
+        subdirectories or log the file as modified
+        """
         files = files.strip().split("\n")
         tmp = {}
         for file in files:
@@ -113,7 +139,6 @@ class RCloneBackupScript:
                     key += "/"
                 values = " ".join(file[5:7]).strip("'")
                 tmp[key] = values
-                ""
 
         files = tmp
         del tmp
@@ -145,19 +170,23 @@ class RCloneBackupScript:
                     self.get_modified_files(file)
                 elif isfile(file):
                     self.modified.add(file)
-            else:
-                break
-
-        return
+            break
 
     def get_modified_files(self, cwd: str):
+        """
+        Recursively checks the cwd and every subdirectory within it
+        """
+        print(f"In {cwd}")
         files = self.get_files_in_cwd(cwd)
         if not files:
             return
-        else:
-            self.check_if_modified(cwd, files)
+
+        self.check_if_modified(cwd, files)
 
     def rclone_sync(self, source_path, destination_path):
+        """
+        Sync modified files to Proton Drive
+        """
         command = [
             "/usr/bin/rclone",
             "sync",
@@ -171,10 +200,17 @@ class RCloneBackupScript:
             file = file[19:]
             command.append("--include")
             command.append(file)
-
-        run(command, check=True, timeout=1800)
+        try:
+            run(command, check=True, timeout=1800)
+        except CalledProcessError as e:
+            print(e.stderr.decode("utf-8"), "\n")
+            print(e.returncode, "\n")
+            sys.exit()
 
     def update_mod_times_in_db(self):
+        """
+        Update the database mod times to their current version
+        """
         with self.conn.cursor() as cur:
             for file in self.modified:
                 try:
@@ -191,8 +227,9 @@ class RCloneBackupScript:
                         e.returncode == 2
                     ):  # File was modified locally so it is in the DB but not the local filesystem
                         continue
-                    else:
-                        raise Exception  # Should never go here, but if it does then I want to stop the program
+
+                    raise CalledProcessError  # Should never go here, but if it does then I want to stop the program
+
                 cur.execute(
                     """
                     UPDATE Times
@@ -203,6 +240,9 @@ class RCloneBackupScript:
                 )
 
     def backup_log_to_git(self):
+        """
+        Every 10 runs, the log files will be backed up to github
+        """
         with self.conn.cursor() as cur:
             backup_num = cur.execute(
                 """
@@ -230,9 +270,12 @@ class RCloneBackupScript:
                 check=True,
                 timeout=10,
             )
-            run(["git", "push"])
+            run(
+                ["git", "push"],
+                check=True,
+                timeout=10,
+            )
 
-        ""
 
-
-RCloneBackupScript()
+if __name__ == "__main__":
+    RCloneBackupScript()
