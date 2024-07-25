@@ -4,9 +4,8 @@ modules docstring
 
 import sys  # TODO: Remove when program works
 from os.path import isdir, isfile
+from sqlite3 import OperationalError, connect
 from subprocess import CalledProcessError, TimeoutExpired, run
-
-from psycopg import connect
 
 
 class RCloneBackupScript:
@@ -16,21 +15,70 @@ class RCloneBackupScript:
     """
 
     def __init__(self) -> None:
-        print("Entered Init")
         local_directory = "/home/kr9sis/PDrive/"
         remote_directory = "PDrive:"
         self.modified: set[str] = set()
-        with connect("dbname=FileModifyTimes user=postgres") as self.conn:
-            print("Entering get_modified_files")
+        self.check_or_setup_database()
+        self.conn = connect("dbname=FileModifyTimes")
+        with self.conn:
             self.get_modified_files(cwd=local_directory)
-            print("Entering rclone_sync")
             self.rclone_sync(
                 source_path=local_directory, destination_path=remote_directory
             )
-            print("Entering update_mod_times_in_db")
             self.update_mod_times_in_db()
-            print("Entering backup_log_to_git")
             self.backup_log_to_git()
+            self.conn.commit()
+
+    def check_or_setup_database(self):
+        """
+        Function to set up SQLite database if it doesn't exist
+        """
+        try:
+            conn = connect("file:FileModifyTimes.db?mode=rw", uri=True)
+            conn.close()
+        except OperationalError:
+            conn = connect("FileModifyTimes")
+            with conn:
+                conn.execute("DROP TABLE IF EXISTS BACKUPNUM;")
+                conn.execute("DROP TABLE IF EXISTS TIMES;")
+                conn.execute("DROP TABLE IF EXISTS FOLDERS;")
+
+                conn.execute(
+                    """
+                    CREATE TABLE FOLDERS (
+                        FOLDER_PATH TEXT PRIMARY KEY
+                    );
+                    """
+                )
+
+                conn.execute(
+                    """
+                    CREATE TABLE TIMES (
+                        PARENT_PATH TEXT,
+                        FILE_PATH TEXT PRIMARY KEY,
+                        MODIFICATION_TIME TEXT NOT NULL,
+                        FOREIGN KEY (PARENT_PATH) REFERENCES FOLDERS (FOLDER_PATH)
+                    );
+                    """
+                )
+
+                conn.execute(
+                    """
+                    CREATE TABLE BACKUPNUM (
+                        NUMKEY TEXT PRIMARY KEY,
+                        BACKUPNUM INTEGER;
+                    )
+                    """
+                )
+
+                conn.execute(
+                    """
+                    INSERT INTO BACKUPNUM (NUMKEY, BACKUPNUM)
+                    VALUES ("numkey", 0)
+                    """
+                )
+
+            conn.close()
 
     def get_files_in_cwd(self, cwd) -> str:
         """
@@ -47,11 +95,18 @@ class RCloneBackupScript:
 
         except CalledProcessError as exc:
             print(
-                f"Process returned unsuccessful return code.\nCode: {exc.returncode} \nException: {exc}\nError: {exc.stderr}\nCWD {cwd}"
+                f"""
+                Process returned unsuccessful return code.\n
+                Code: {exc.returncode} \nException: {exc}\n
+                Error: {exc.stderr}\n
+                CWD {cwd}
+                """
             )
+            files = ""
 
         except TimeoutExpired as exc:
             print(f"Process timed out\nException: {exc}")
+            raise exc
 
         return files
 
@@ -64,72 +119,70 @@ class RCloneBackupScript:
 
         diff = local_files.symmetric_difference(cloud_files)
         self.modified = self.modified.union(diff)
-        with self.conn.cursor() as cur:
-            for file in diff:
-                if file not in cloud_files:  # File was created locally
-                    index = file.rfind("/", 0, -1)
-                    parent_dir = file[0 : index + 1]
-                    if isdir(file):
-                        cur.execute(
-                            """
-                            INSERT INTO Folders(folder_path)
-                            VALUES(%s);
-                            """,
-                            (file,),
-                        )
-                        cur.execute(
-                            """
-                            INSERT INTO Times(parent_path, file_path, modification_time)
-                            VALUES(%s, %s, %s);
-                            """,
-                            (parent_dir, file, "0000-00-00 00:00"),
-                        )
-                    else:
-                        cur.execute(
-                            """INSERT INTO Times(parent_path, file_path, modification_time)
-                            VALUES(%s, %s, %s);""",
-                            (parent_dir, file, "0000-00-00 00:00"),
-                        )
+        for file in diff:
+            if file not in cloud_files:  # File was created locally
+                index = file.rfind("/", 0, -1)
+                parent_dir = file[0 : index + 1]
+                if isdir(file):
+                    self.conn.execute(
+                        """
+                        INSERT INTO Folders(folder_path)
+                        VALUES(%s);
+                        """,
+                        (file,),
+                    )
+                    self.conn.execute(
+                        """
+                        INSERT INTO Times(parent_path, file_path, modification_time)
+                        VALUES(%s, %s, %s);
+                        """,
+                        (parent_dir, file, "0000-00-00 00:00"),
+                    )
+                else:
+                    self.conn.execute(
+                        """INSERT INTO Times(parent_path, file_path, modification_time)
+                        VALUES(%s, %s, %s);""",
+                        (parent_dir, file, "0000-00-00 00:00"),
+                    )
 
-                    db_files[file] = "0000-00-00 00:00"
+                db_files[file] = "0000-00-00 00:00"
 
-                elif file not in local_files:  # File was deleted locally
-                    if file[-1] == "/":
-                        cur.execute(
-                            """
-                            DELETE FROM Times
-                            WHERE parent_path=%s;
-                            """,
-                            (file,),
-                        )
+            elif file not in local_files:  # File was deleted locally
+                if file[-1] == "/":
+                    self.conn.execute(
+                        """
+                        DELETE FROM Times
+                        WHERE parent_path=%s;
+                        """,
+                        (file,),
+                    )
 
-                        cur.execute(
-                            """
-                            DELETE FROM Folders
-                            WHERE folder_path=%s;
-                            """,
-                            (file,),
-                        )
-                    else:
-                        cur.execute(
-                            """
-                            DELETE FROM Times
-                            WHERE file_path=%s;
-                            """,
-                            (file,),
-                        )
+                    self.conn.execute(
+                        """
+                        DELETE FROM Folders
+                        WHERE folder_path=%s;
+                        """,
+                        (file,),
+                    )
+                else:
+                    self.conn.execute(
+                        """
+                        DELETE FROM Times
+                        WHERE file_path=%s;
+                        """,
+                        (file,),
+                    )
 
-                    files[file] = "0000-00-00 00:00"
+                files[file] = "0000-00-00 00:00"
 
-            self.conn.commit()
-
-    def check_if_modified(self, cwd: str, files: str):
+    def check_if_modified(self, cwd: str, files):
         """
         Check the given files and see if they have been
         modified or not if they have been then either check its
         subdirectories or log the file as modified
         """
-        files = files.strip().split("\n")
+        files = files.strip()
+        files = files.split("\n")
         tmp = {}
         for file in files:
             if len(file) > 50:
@@ -158,14 +211,15 @@ class RCloneBackupScript:
                 print(
                     f"\n\n Exception occured when getting {cwd} content form DB\nException:\n{e}"
                 )
+                raise e
 
-        db_files = {key: value for key, value in db_files}
+        db_files = dict(db_files)
 
         if len(files) != len(db_files):
             self.add_or_del_from_db(files, db_files)
 
-        for file in files:
-            if files[file] != db_files[file]:
+        for file, modification_time in files.items():
+            if modification_time != db_files[file]:
                 if isdir(file):
                     self.get_modified_files(file)
                 elif isfile(file):
@@ -228,7 +282,8 @@ class RCloneBackupScript:
                     ):  # File was modified locally so it is in the DB but not the local filesystem
                         continue
 
-                    raise CalledProcessError  # Should never go here, but if it does then I want to stop the program
+                    raise e
+                    # Should never go here, but if it does then I want to stop the program
 
                 cur.execute(
                     """
