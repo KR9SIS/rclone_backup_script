@@ -123,22 +123,22 @@ class RCloneBackupScript:
                 if isdir(file):
                     self.conn.execute(
                         """
-                        INSERT INTO Folders(folder_path)
-                        VALUES(%s);
+                        INSERT INTO FOLDERS(FOLDER_PATH)
+                        VALUES(?);
                         """,
                         (file,),
                     )
                     self.conn.execute(
                         """
-                        INSERT INTO Times(parent_path, file_path, modification_time)
-                        VALUES(%s, %s, %s);
+                        INSERT INTO TIMES(PARENT_PATH, FILE_PATH, MODIFICATION_TIME)
+                        VALUES(?,?,?);
                         """,
                         (parent_dir, file, "0000-00-00 00:00"),
                     )
                 else:
                     self.conn.execute(
-                        """INSERT INTO Times(parent_path, file_path, modification_time)
-                        VALUES(%s, %s, %s);""",
+                        """INSERT INTO TIMES(PARENT_PATH, FILE_PATH, MODIFICATION_TIME)
+                        VALUES(?,?,?);""",
                         (parent_dir, file, "0000-00-00 00:00"),
                     )
 
@@ -148,24 +148,24 @@ class RCloneBackupScript:
                 if file[-1] == "/":
                     self.conn.execute(
                         """
-                        DELETE FROM Times
-                        WHERE parent_path=%s;
+                        DELETE FROM TIMES 
+                        WHERE PARENT_PATH=?;
                         """,
                         (file,),
                     )
 
                     self.conn.execute(
                         """
-                        DELETE FROM Folders
-                        WHERE folder_path=%s;
+                        DELETE FROM FOLDERS
+                        WHERE FOLDER_PATH=?;
                         """,
                         (file,),
                     )
                 else:
                     self.conn.execute(
                         """
-                        DELETE FROM Times
-                        WHERE file_path=%s;
+                        DELETE FROM TIMES
+                        WHERE FILE_PATH=?;
                         """,
                         (file,),
                     )
@@ -193,22 +193,21 @@ class RCloneBackupScript:
         files = tmp
         del tmp
 
-        with self.conn.cursor() as cur:
-            try:
-                cur.execute(
-                    """
-                    SELECT file_path, modification_time
-                    FROM Times
-                    WHERE parent_path = %s;
-                    """,
-                    (cwd,),
-                )
-                db_files = cur.fetchall()
-            except Exception as e:
-                print(
-                    f"\n\n Exception occured when getting {cwd} content form DB\nException:\n{e}"
-                )
-                raise e
+        try:
+            cur = self.conn.execute(
+                """
+                SELECT FILE_PATH, MODIFICATION_TIME
+                FROM TIMES
+                WHERE PARENT_PATH = ?;
+                """,
+                (cwd,),
+            )
+            db_files = cur.fetchall()
+        except Exception as e:
+            print(
+                f"\n\n Exception occured when getting {cwd} content form DB\nException:\n{e}"
+            )
+            raise e
 
         db_files = dict(db_files)
 
@@ -256,40 +255,39 @@ class RCloneBackupScript:
         except CalledProcessError as e:
             print(e.stderr.decode("utf-8"), "\n")
             print(e.returncode, "\n")
-            sys.exit()
+            sys.exit()  # TODO: Remove after fix
 
     def update_mod_times_in_db(self):
         """
         Update the database mod times to their current version
         """
-        with self.conn.cursor() as cur:
-            for file in self.modified:
-                try:
-                    mod_time = run(
-                        ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{file}"],
-                        check=True,
-                        capture_output=True,
-                        timeout=10,
-                    )
-                    mod_time = mod_time.stdout.decode("utf-8")
-                    mod_time = " ".join(mod_time.split(" ")[5:7]).strip("'")
-                except CalledProcessError as e:
-                    if (
-                        e.returncode == 2
-                    ):  # File was modified locally so it is in the DB but not the local filesystem
-                        continue
-
-                    raise e
-                    # Should never go here, but if it does then I want to stop the program
-
-                cur.execute(
-                    """
-                    UPDATE Times
-                    SET modification_time = %s
-                    WHERE file_path = %s;
-                    """,
-                    (mod_time, file),
+        for file in self.modified:
+            try:
+                mod_time = run(
+                    ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{file}"],
+                    check=True,
+                    capture_output=True,
+                    timeout=10,
                 )
+                mod_time = mod_time.stdout.decode("utf-8")
+                mod_time = " ".join(mod_time.split(" ")[5:7]).strip("'")
+            except CalledProcessError as e:
+                if (
+                    e.returncode == 2
+                ):  # File was modified locally so it is in the DB but not the local filesystem
+                    continue
+
+                raise e
+                # Should never go here, but if it does then I want to stop the program
+
+            self.conn.execute(
+                """
+                UPDATE TIMES
+                SET MODIFICATION_TIME = ?
+                WHERE FILE_PATH = ?;
+                """,
+                (mod_time, file),
+            )
 
     def backup_log_to_git(self):
         """
