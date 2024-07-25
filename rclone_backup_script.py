@@ -22,12 +22,10 @@ class RCloneBackupScript:
         self.conn = connect("dbname=FileModifyTimes")
         with self.conn:
             self.get_modified_files(cwd=local_directory)
-            self.rclone_sync(
-                source_path=local_directory, destination_path=remote_directory
-            )
+            self.rclone_sync(local_directory, remote_directory)
             self.update_mod_times_in_db()
             self.backup_log_to_git()
-            self.conn.commit()
+        self.conn.close()
 
     def check_or_setup_database(self):
         """
@@ -77,8 +75,7 @@ class RCloneBackupScript:
                     VALUES ("numkey", 0)
                     """
                 )
-
-            conn.close()
+                conn.close()
 
     def get_files_in_cwd(self, cwd) -> str:
         """
@@ -298,12 +295,12 @@ class RCloneBackupScript:
         """
         Every 10 runs, the log files will be backed up to github
         """
-        with self.conn.cursor() as cur:
-            backup_num = cur.execute(
-                """
-                SELECT nextval('BackupNum');
-                """
-            ).fetchall()
+        backup_num = self.conn.execute(
+            """
+            SELECT BACKUPNUM from BACKUPNUM
+            WHERE NUMKEY = numkey;
+            """
+        ).fetchone()
 
         backup_num = backup_num[0][0]
         if backup_num % 10 == 0:
@@ -330,6 +327,15 @@ class RCloneBackupScript:
                 check=True,
                 timeout=10,
             )
+        backup_num += 1
+        self.conn.execute(
+            """
+            UPDATE BACKUPNUM
+            SET BACKUPNUM = ?
+            WHERE NUMKEY = numkey
+            """,
+            (backup_num,),
+        )
 
 
 if __name__ == "__main__":
