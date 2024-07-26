@@ -32,16 +32,17 @@ class RCloneBackupScript:
         Function to set up SQLite database if it doesn't exist
         """
         try:
-            conn = connect("file:FileModifyTimes.db?mode=rw", uri=True)
+            conn = connect("FileModifyTimes.db?mode=rw", uri=True)
             conn.close()
         except OperationalError:
-            conn = connect("FileModifyTimes")
-            with conn:
-                conn.execute("DROP TABLE IF EXISTS BACKUPNUM;")
-                conn.execute("DROP TABLE IF EXISTS TIMES;")
-                conn.execute("DROP TABLE IF EXISTS FOLDERS;")
+            conn_new = connect("FileModifyTimes", autocommit=False)
+            with conn_new:
+                conn_new.execute("PRAGMA foreign_keys = ON;")
+                conn_new.execute("DROP TABLE IF EXISTS BACKUPNUM;")
+                conn_new.execute("DROP TABLE IF EXISTS TIMES;")
+                conn_new.execute("DROP TABLE IF EXISTS FOLDERS;")
 
-                conn.execute(
+                conn_new.execute(
                     """
                     CREATE TABLE FOLDERS (
                         FOLDER_PATH TEXT PRIMARY KEY
@@ -49,7 +50,7 @@ class RCloneBackupScript:
                     """
                 )
 
-                conn.execute(
+                conn_new.execute(
                     """
                     CREATE TABLE TIMES (
                         PARENT_PATH TEXT,
@@ -60,22 +61,23 @@ class RCloneBackupScript:
                     """
                 )
 
-                conn.execute(
+                conn_new.execute(
                     """
                     CREATE TABLE BACKUPNUM (
                         NUMKEY TEXT PRIMARY KEY,
-                        BACKUPNUM INTEGER;
-                    )
+                        BACKUPNUM INTEGER
+                    );
                     """
                 )
 
-                conn.execute(
+                conn_new.execute(
                     """
                     INSERT INTO BACKUPNUM (NUMKEY, BACKUPNUM)
-                    VALUES ("numkey", 0)
-                    """
+                    VALUES (?, ?)
+                    """,
+                    ("numkey", 0),
                 )
-                conn.close()
+            conn_new.close()
 
     def get_files_in_cwd(self, cwd) -> str:
         """
@@ -245,6 +247,7 @@ class RCloneBackupScript:
             "-v",
             "--log-file",
             "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
+            "--dry-run",
         ]
         for file in self.modified:
             file = file[19:]
