@@ -3,6 +3,7 @@ modules docstring
 """
 
 import sys  # TODO: Remove when program works
+from contextlib import closing
 from os.path import isdir, isfile
 from sqlite3 import OperationalError, connect
 from subprocess import CalledProcessError, TimeoutExpired, run
@@ -15,69 +16,71 @@ class RCloneBackupScript:
     """
 
     def __init__(self) -> None:
+        # Script setup
         local_directory = "/home/kr9sis/PDrive/"
         remote_directory = "PDrive:"
         self.modified: set[str] = set()
-        self.check_or_setup_database()
-        self.conn = connect("dbname=FileModifyTimes")
-        with self.conn:
+
+        # Script logic
+        with closing(connect("dbname=FileModifyTimes", autocommit=False)) as self.conn:
+            self.check_or_setup_database()
             self.get_modified_files(cwd=local_directory)
-            self.rclone_sync(local_directory, remote_directory)
+            # self.rclone_sync(local_directory, remote_directory)
             self.update_mod_times_in_db()
             self.backup_log_to_git()
-        self.conn.close()
 
     def check_or_setup_database(self):
         """
         Function to set up SQLite database if it doesn't exist
         """
         try:
-            conn = connect("FileModifyTimes.db?mode=rw", uri=True)
-            conn.close()
+            # Check if database is already set up
+            self.conn.execute("SELECT BackupNum FROM BackupNum")
+
         except OperationalError:
-            conn_new = connect("FileModifyTimes", autocommit=False)
-            with conn_new:
-                conn_new.execute("PRAGMA foreign_keys = ON;")
-                conn_new.execute("DROP TABLE IF EXISTS BACKUPNUM;")
-                conn_new.execute("DROP TABLE IF EXISTS TIMES;")
-                conn_new.execute("DROP TABLE IF EXISTS FOLDERS;")
+            # If not, then set it up
+            self.conn.execute("PRAGMA foreign_keys = ON;")
+            self.conn.execute("DROP TABLE IF EXISTS BackupNum;")
+            self.conn.execute("DROP TABLE IF EXISTS Times;")
+            self.conn.execute("DROP TABLE IF EXISTS Folders;")
 
-                conn_new.execute(
-                    """
-                    CREATE TABLE FOLDERS (
-                        FOLDER_PATH TEXT PRIMARY KEY
-                    );
-                    """
-                )
+            self.conn.execute(
+                """
+                CREATE TABLE Folders (
+                    folder_path TEXT PRIMARY KEY
+                );
+                """
+            )
 
-                conn_new.execute(
-                    """
-                    CREATE TABLE TIMES (
-                        PARENT_PATH TEXT,
-                        FILE_PATH TEXT PRIMARY KEY,
-                        MODIFICATION_TIME TEXT NOT NULL,
-                        FOREIGN KEY (PARENT_PATH) REFERENCES FOLDERS (FOLDER_PATH)
-                    );
-                    """
-                )
+            self.conn.execute(
+                """
+                CREATE TABLE Times (
+                    parent_path TEXT,
+                    file_path TEXT PRIMARY KEY,
+                    modification_time TEXT NOT NULL,
+                    FOREIGN KEY (parent_path) REFERENCES Folders (folder_path)
+                );
+                """
+            )
 
-                conn_new.execute(
-                    """
-                    CREATE TABLE BACKUPNUM (
-                        NUMKEY TEXT PRIMARY KEY,
-                        BACKUPNUM INTEGER
-                    );
-                    """
-                )
+            self.conn.execute(
+                """
+                CREATE TABLE BackupNum (
+                    num_key TEXT PRIMARY KEY,
+                    backup_num INTEGER
+                );
+                """
+            )
 
-                conn_new.execute(
-                    """
-                    INSERT INTO BACKUPNUM (NUMKEY, BACKUPNUM)
-                    VALUES (?, ?)
-                    """,
-                    ("numkey", 0),
-                )
-            conn_new.close()
+            self.conn.execute(
+                """
+                INSERT INTO BackupNum (num_key, backup_num)
+                VALUES (?, ?)
+                """,
+                ("numkey", 0),
+            )
+
+            self.conn.commit()
 
     def get_files_in_cwd(self, cwd) -> str:
         """
@@ -125,21 +128,21 @@ class RCloneBackupScript:
                 if isdir(file):
                     self.conn.execute(
                         """
-                        INSERT INTO FOLDERS(FOLDER_PATH)
+                        INSERT INTO Folders(folder_path)
                         VALUES(?);
                         """,
                         (file,),
                     )
                     self.conn.execute(
                         """
-                        INSERT INTO TIMES(PARENT_PATH, FILE_PATH, MODIFICATION_TIME)
+                        INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
                         """,
                         (parent_dir, file, "0000-00-00 00:00"),
                     )
                 else:
                     self.conn.execute(
-                        """INSERT INTO TIMES(PARENT_PATH, FILE_PATH, MODIFICATION_TIME)
+                        """INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);""",
                         (parent_dir, file, "0000-00-00 00:00"),
                     )
@@ -150,29 +153,31 @@ class RCloneBackupScript:
                 if file[-1] == "/":
                     self.conn.execute(
                         """
-                        DELETE FROM TIMES 
-                        WHERE PARENT_PATH=?;
+                        DELETE FROM Times 
+                        WHERE parent_path=?;
                         """,
                         (file,),
                     )
 
                     self.conn.execute(
                         """
-                        DELETE FROM FOLDERS
-                        WHERE FOLDER_PATH=?;
+                        DELETE FROM Folders
+                        WHERE folder_path=?;
                         """,
                         (file,),
                     )
                 else:
                     self.conn.execute(
                         """
-                        DELETE FROM TIMES
-                        WHERE FILE_PATH=?;
+                        DELETE FROM Times
+                        WHERE file_path=?;
                         """,
                         (file,),
                     )
 
                 files[file] = "0000-00-00 00:00"
+
+        self.conn.commit()
 
     def check_if_modified(self, cwd: str, files):
         """
@@ -195,21 +200,14 @@ class RCloneBackupScript:
         files = tmp
         del tmp
 
-        try:
-            cur = self.conn.execute(
-                """
-                SELECT FILE_PATH, MODIFICATION_TIME
-                FROM TIMES
-                WHERE PARENT_PATH = ?;
-                """,
-                (cwd,),
-            )
-            db_files = cur.fetchall()
-        except Exception as e:
-            print(
-                f"\n\n Exception occured when getting {cwd} content form DB\nException:\n{e}"
-            )
-            raise e
+        db_files = self.conn.execute(
+            """
+            SELECT file_path, modification_time
+            FROM Times
+            WHERE parent_path = ?;
+            """,
+            (cwd,),
+        ).fetchall()
 
         db_files = dict(db_files)
 
@@ -275,9 +273,8 @@ class RCloneBackupScript:
                 mod_time = mod_time.stdout.decode("utf-8")
                 mod_time = " ".join(mod_time.split(" ")[5:7]).strip("'")
             except CalledProcessError as e:
-                if (
-                    e.returncode == 2
-                ):  # File was modified locally so it is in the DB but not the local filesystem
+                if e.returncode == 2:
+                    # File was modified locally so it is in the DB but not the local filesystem
                     continue
 
                 raise e
@@ -285,12 +282,13 @@ class RCloneBackupScript:
 
             self.conn.execute(
                 """
-                UPDATE TIMES
-                SET MODIFICATION_TIME = ?
-                WHERE FILE_PATH = ?;
+                UPDATE Times
+                SET modification_time = ?
+                WHERE file_path = ?;
                 """,
                 (mod_time, file),
             )
+            self.conn.commit()
 
     def backup_log_to_git(self):
         """
@@ -298,9 +296,10 @@ class RCloneBackupScript:
         """
         backup_num = self.conn.execute(
             """
-            SELECT BACKUPNUM from BACKUPNUM
-            WHERE NUMKEY = numkey;
-            """
+            SELECT backup_num from BackupNum
+            WHERE num_key = ?;
+            """,
+            ("numkey",),
         ).fetchone()
 
         backup_num = backup_num[0][0]
@@ -331,12 +330,13 @@ class RCloneBackupScript:
         backup_num += 1
         self.conn.execute(
             """
-            UPDATE BACKUPNUM
-            SET BACKUPNUM = ?
-            WHERE NUMKEY = numkey
+            UPDATE BackupNum
+            SET BackupNum = ?
+            WHERE num_key = ?
             """,
-            (backup_num,),
+            (backup_num, "numkey"),
         )
+        self.conn.commit()
 
 
 if __name__ == "__main__":
