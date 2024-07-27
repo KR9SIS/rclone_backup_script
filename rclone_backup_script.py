@@ -17,17 +17,17 @@ class RCloneBackupScript:
 
     def __init__(self) -> None:
         # Script setup
-        local_directory = "/home/kr9sis/PDrive/"
+        local_directory = "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/"
         remote_directory = "PDrive:"
         self.modified: set[str] = set()
 
         # Script logic
-        with closing(connect("dbname=FileModifyTimes", autocommit=False)) as self.conn:
+        with closing(connect("FileModifyTimes.db", autocommit=False)) as self.conn:
             self.check_or_setup_database()
             self.get_modified_files(cwd=local_directory)
-            # self.rclone_sync(local_directory, remote_directory)
-            self.update_mod_times_in_db()
-            self.backup_log_to_git()
+            # self.rclone_sync(local_directory, remote_directory) #TODO: Uncomment
+            # self.update_mod_times_in_db()
+            # self.backup_log_to_git() #TODO: Uncomment
 
     def check_or_setup_database(self):
         """
@@ -138,13 +138,13 @@ class RCloneBackupScript:
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
                         """,
-                        (parent_dir, file, "0000-00-00 00:00"),
+                        (parent_dir, file, files[file]),
                     )
                 else:
                     self.conn.execute(
                         """INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);""",
-                        (parent_dir, file, "0000-00-00 00:00"),
+                        (parent_dir, file, files[file]),
                     )
 
                 db_files[file] = "0000-00-00 00:00"
@@ -220,7 +220,8 @@ class RCloneBackupScript:
                     self.get_modified_files(file)
                 elif isfile(file):
                     self.modified.add(file)
-            break
+            else:
+                break
 
     def get_modified_files(self, cwd: str):
         """
@@ -262,33 +263,38 @@ class RCloneBackupScript:
         """
         Update the database mod times to their current version
         """
+        counter = 1
         for file in self.modified:
-            try:
-                mod_time = run(
-                    ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{file}"],
-                    check=True,
-                    capture_output=True,
-                    timeout=10,
+            if file[-1] != "/":
+                print(f"File {counter} of {len(self.modified)}")
+                try:
+                    cmd_out = run(
+                        ["du", "--time", f"{file}"],
+                        check=True,
+                        capture_output=True,
+                        timeout=10,
+                    )
+                    cmd_out = cmd_out.stdout.decode("utf-8")
+                    mod_time = cmd_out.split("\t")[1]
+                except CalledProcessError as e:
+                    if e.returncode == 2:
+                        # File was modified locally so it is in the DB but not the local filesystem
+                        continue
+
+                    raise e
+                    # Should never go here, but if it does then I want to stop the program
+
+                self.conn.execute(
+                    """
+                    UPDATE Times
+                    SET modification_time = ?
+                    WHERE file_path = ?;
+                    """,
+                    (mod_time, file),
                 )
-                mod_time = mod_time.stdout.decode("utf-8")
-                mod_time = " ".join(mod_time.split(" ")[5:7]).strip("'")
-            except CalledProcessError as e:
-                if e.returncode == 2:
-                    # File was modified locally so it is in the DB but not the local filesystem
-                    continue
+                counter += 1
 
-                raise e
-                # Should never go here, but if it does then I want to stop the program
-
-            self.conn.execute(
-                """
-                UPDATE Times
-                SET modification_time = ?
-                WHERE file_path = ?;
-                """,
-                (mod_time, file),
-            )
-            self.conn.commit()
+        self.conn.commit()
 
     def backup_log_to_git(self):
         """
@@ -302,7 +308,7 @@ class RCloneBackupScript:
             ("numkey",),
         ).fetchone()
 
-        backup_num = backup_num[0][0]
+        backup_num = backup_num[0]
         if backup_num % 10 == 0:
             run(
                 [
@@ -317,7 +323,7 @@ class RCloneBackupScript:
                 [
                     "git",
                     "commit",
-                    "-m" f"Backup #{backup_num} made, syncing to github",
+                    f"-m Backup #{backup_num} made, syncing to github",
                 ],
                 check=True,
                 timeout=10,
@@ -331,7 +337,7 @@ class RCloneBackupScript:
         self.conn.execute(
             """
             UPDATE BackupNum
-            SET BackupNum = ?
+            SET backup_num = ?
             WHERE num_key = ?
             """,
             (backup_num, "numkey"),
