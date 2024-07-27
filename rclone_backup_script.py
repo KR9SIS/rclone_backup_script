@@ -26,7 +26,6 @@ class RCloneBackupScript:
             self.check_or_setup_database()
             self.get_modified_files(cwd=local_directory)
             # self.rclone_sync(local_directory, remote_directory) #TODO: Uncomment
-            # self.update_mod_times_in_db()
             # self.backup_log_to_git() #TODO: Uncomment
 
     def check_or_setup_database(self):
@@ -258,43 +257,6 @@ class RCloneBackupScript:
             print(e.stderr.decode("utf-8"), "\n")
             print(e.returncode, "\n")
             sys.exit()  # TODO: Remove after fix
-
-    def update_mod_times_in_db(self):
-        """
-        Update the database mod times to their current version
-        """
-        counter = 1
-        for file in self.modified:
-            if file[-1] != "/":
-                print(f"File {counter} of {len(self.modified)}")
-                try:
-                    cmd_out = run(
-                        ["du", "--time", f"{file}"],
-                        check=True,
-                        capture_output=True,
-                        timeout=10,
-                    )
-                    cmd_out = cmd_out.stdout.decode("utf-8")
-                    mod_time = cmd_out.split("\t")[1]
-                except CalledProcessError as e:
-                    if e.returncode == 2:
-                        # File was modified locally so it is in the DB but not the local filesystem
-                        continue
-
-                    raise e
-                    # Should never go here, but if it does then I want to stop the program
-
-                self.conn.execute(
-                    """
-                    UPDATE Times
-                    SET modification_time = ?
-                    WHERE file_path = ?;
-                    """,
-                    (mod_time, file),
-                )
-                counter += 1
-
-        self.conn.commit()
 
     def backup_log_to_git(self):
         """
