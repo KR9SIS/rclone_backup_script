@@ -26,7 +26,6 @@ class RCloneBackupScript:
             self.check_or_setup_database()
             self.get_modified_files(cwd=local_directory)
             # self.rclone_sync(local_directory, remote_directory) #TODO: Uncomment
-            # self.backup_log_to_git() #TODO: Uncomment
 
     def check_or_setup_database(self):
         """
@@ -257,54 +256,6 @@ class RCloneBackupScript:
             print(e.stderr.decode("utf-8"), "\n")
             print(e.returncode, "\n")
             sys.exit()  # TODO: Remove after fix
-
-    def backup_log_to_git(self):
-        """
-        Every 10 runs, the log files will be backed up to github
-        """
-        backup_num = self.conn.execute(
-            """
-            SELECT backup_num from BackupNum
-            WHERE num_key = ?;
-            """,
-            ("numkey",),
-        ).fetchone()
-
-        backup_num = backup_num[0]
-        if backup_num % 10 == 0:
-            run(
-                [
-                    "git",
-                    "add",
-                    "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
-                ],
-                check=True,
-                timeout=10,
-            )
-            run(
-                [
-                    "git",
-                    "commit",
-                    f"-m Backup #{backup_num} made, syncing to github",
-                ],
-                check=True,
-                timeout=10,
-            )
-            run(
-                ["git", "push"],
-                check=True,
-                timeout=10,
-            )
-        backup_num += 1
-        self.conn.execute(
-            """
-            UPDATE BackupNum
-            SET backup_num = ?
-            WHERE num_key = ?
-            """,
-            (backup_num, "numkey"),
-        )
-        self.conn.commit()
 
 
 if __name__ == "__main__":
