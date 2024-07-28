@@ -251,6 +251,7 @@ class RCloneBackupScript:
             "-v",
             "--log-file",
             "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log",
+            "--protondrive-replace-existing-draft=true",
         ]
 
         for file in self.modified:
