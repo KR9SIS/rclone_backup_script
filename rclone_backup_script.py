@@ -181,7 +181,7 @@ class RCloneBackupScript:
             file_path = Path(file[1])
             mod_time = file[0]
 
-            if file[1] == cwd or file_path.name.startswith("."):
+            if file[1] == str(cwd) or file_path.name.startswith("."):
                 continue
             tmp[file_path] = mod_time
 
@@ -194,7 +194,7 @@ class RCloneBackupScript:
             FROM Times
             WHERE parent_path = ?;
             """,
-            (cwd,),
+            (str(cwd),),
         ).fetchall()
 
         db_files = {Path(item[0]): item[1] for item in db_files}
@@ -213,7 +213,7 @@ class RCloneBackupScript:
                     UPDATE Times SET modification_time = ?
                     WHERE file_path = ?
                     """,
-                    (modification_time, file),
+                    (modification_time, str(file)),
                 )
             else:
                 break
