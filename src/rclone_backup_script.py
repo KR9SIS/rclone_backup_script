@@ -21,14 +21,14 @@ class RCloneBackupScript:
     def __init__(self) -> None:
         # Script setup
         local_directory = "/home/kr9sis/PDrive"
-        # remote_directory = "PDrive:"
+        remote_directory = "PDrive:"
         self.modified: set[Path] = set()
 
         # Script logic
         with closing(connect("FileModifyTimes.db")) as self.conn:
             self.check_or_setup_database(local_directory)
             self.get_modified_files(cwd=Path(local_directory))
-            # self.rclone_sync(local_directory, remote_directory)
+            self.rclone_sync(local_directory, remote_directory)
             ""
 
     def check_or_setup_database(self, local_directory):
@@ -218,7 +218,7 @@ class RCloneBackupScript:
             else:
                 break
 
-            self.conn.commit()
+        self.conn.commit()
 
     def get_modified_files(self, cwd: Path):
         """
@@ -239,7 +239,7 @@ class RCloneBackupScript:
             "--dry-run",
             "-v",
             "--log-file",
-            "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
+            "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log",
         ]
 
         for file in self.modified:
@@ -257,3 +257,4 @@ class RCloneBackupScript:
 
 if __name__ == "__main__":
     RCloneBackupScript()
+    "small modified"
