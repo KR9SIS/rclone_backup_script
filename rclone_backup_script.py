@@ -1,12 +1,15 @@
+#!/home/kr9sis/PDrive/Code/Py/rclone_backup_script/.venv/bin/python
 """
 modules docstring
 """
-
-import sys  # TODO: Remove when program works
 from contextlib import closing
-from os.path import isdir, isfile
+from pathlib import Path
 from sqlite3 import OperationalError, connect
-from subprocess import CalledProcessError, TimeoutExpired, run
+from subprocess import PIPE, CalledProcessError, TimeoutExpired, run
+
+from rclone_python import rclone
+
+# from subprocess import CalledProcessError, TimeoutExpired, run, PIPE
 
 
 class RCloneBackupScript:
@@ -17,15 +20,16 @@ class RCloneBackupScript:
 
     def __init__(self) -> None:
         # Script setup
-        local_directory = "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/"
+        local_directory = "/home/kr9sis/PDrive/"
         remote_directory = "PDrive:"
         self.modified: set[str] = set()
 
         # Script logic
-        with closing(connect("FileModifyTimes.db", autocommit=False)) as self.conn:
+        with closing(connect("FileModifyTimes.db")) as self.conn:
             self.check_or_setup_database()
             self.get_modified_files(cwd=local_directory)
             # self.rclone_sync(local_directory, remote_directory) #TODO: Uncomment
+            ""
 
     def check_or_setup_database(self):
         """
@@ -33,12 +37,17 @@ class RCloneBackupScript:
         """
         try:
             # Check if database is already set up
-            self.conn.execute("SELECT BackupNum FROM BackupNum")
+            self.conn.execute(
+                """
+                SELECT folder_path FROM Folders
+                WHERE folder_path = ?
+                """,
+                ("/home/kr9sis/PDrive/",),
+            )
 
         except OperationalError:
             # If not, then set it up
             self.conn.execute("PRAGMA foreign_keys = ON;")
-            self.conn.execute("DROP TABLE IF EXISTS BackupNum;")
             self.conn.execute("DROP TABLE IF EXISTS Times;")
             self.conn.execute("DROP TABLE IF EXISTS Folders;")
 
@@ -52,6 +61,14 @@ class RCloneBackupScript:
 
             self.conn.execute(
                 """
+                INSERT INTO Folders (folder_path)
+                VALUES (?);
+                """,
+                ("/home/kr9sis/PDrive/",),
+            )
+
+            self.conn.execute(
+                """
                 CREATE TABLE Times (
                     parent_path TEXT,
                     file_path TEXT PRIMARY KEY,
@@ -61,54 +78,28 @@ class RCloneBackupScript:
                 """
             )
 
-            self.conn.execute(
-                """
-                CREATE TABLE BackupNum (
-                    num_key TEXT PRIMARY KEY,
-                    backup_num INTEGER
-                );
-                """
-            )
-
-            self.conn.execute(
-                """
-                INSERT INTO BackupNum (num_key, backup_num)
-                VALUES (?, ?)
-                """,
-                ("numkey", 0),
-            )
-
             self.conn.commit()
 
     def get_files_in_cwd(self, cwd) -> str:
         """
-        Get all files within CWD and all subdirectories
+        Function to get all files within the current working directory
         """
+        du_cmd = ["du", "--time", "--all", "--max-depth=1", cwd]
+        sort_cmd = ["sort", "-k2", "-r"]
         try:
-            files = run(
-                ["ls", "-lt", "--time-style=+'%Y-%m-%d %H:%M'", f"{cwd}"],
-                check=True,
-                timeout=10,
-                capture_output=True,
+            du_out = run(du_cmd, check=True, timeout=10, stdout=PIPE)
+            sort_out = run(
+                sort_cmd, check=True, timeout=10, input=du_out.stdout, stdout=PIPE
             )
-            files = files.stdout.decode("utf-8")
+            print(sort_out.stdout.decode("utf-8"))
+            return ""
 
-        except CalledProcessError as exc:
-            print(
-                f"""
-                Process returned unsuccessful return code.\n
-                Code: {exc.returncode} \nException: {exc}\n
-                Error: {exc.stderr}\n
-                CWD {cwd}
-                """
-            )
-            files = ""
-
-        except TimeoutExpired as exc:
-            print(f"Process timed out\nException: {exc}")
-            raise exc
-
-        return files
+        except CalledProcessError as e:
+            print(f"CWD:\n{cwd}\nError occured with getting files command\nError:\n{e}")
+            return ""
+        except TimeoutExpired as e:
+            print(f"CWD:\n{cwd}\nError occured with getting files command\nError:\n{e}")
+            return ""
 
     def add_or_del_from_db(self, files, db_files):
         """
@@ -187,13 +178,14 @@ class RCloneBackupScript:
         files = files.split("\n")
         tmp = {}
         for file in files:
-            if len(file) > 50:
-                file = file.split()
-                key = cwd + " ".join(file[7:])
-                if isdir(key):
-                    key += "/"
-                values = " ".join(file[5:7]).strip("'")
-                tmp[key] = values
+            file = file.split("\t")[1:3]
+
+            file_path = file[1]
+            mod_time = file[0]
+
+            if isdir(file_path):
+                file_path += "/"
+            tmp[file_path] = mod_time
 
         files = tmp
         del tmp
@@ -207,7 +199,7 @@ class RCloneBackupScript:
             (cwd,),
         ).fetchall()
 
-        db_files = dict(db_files)
+        db_files = {item[0]: item[1] for item in db_files}
 
         if len(files) != len(db_files):
             self.add_or_del_from_db(files, db_files)
@@ -218,8 +210,17 @@ class RCloneBackupScript:
                     self.get_modified_files(file)
                 elif isfile(file):
                     self.modified.add(file)
+                self.conn.execute(
+                    """
+                    UPDATE Times SET modification_time = ?
+                    WHERE file_path = ?
+                    """,
+                    (modification_time, file),
+                )
             else:
                 break
+
+            self.conn.commit()
 
     def get_modified_files(self, cwd: str):
         """
@@ -236,26 +237,24 @@ class RCloneBackupScript:
         """
         Sync modified files to Proton Drive
         """
-        command = [
-            "/usr/bin/rclone",
-            "sync",
-            source_path,
-            destination_path,
+        arguments = [
+            "--dry-run",
             "-v",
             "--log-file",
             "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/backup.log",
-            "--dry-run",
         ]
+
         for file in self.modified:
-            file = file[19:]
-            command.append("--include")
-            command.append(file)
-        try:
-            run(command, check=True, timeout=1800)
-        except CalledProcessError as e:
-            print(e.stderr.decode("utf-8"), "\n")
-            print(e.returncode, "\n")
-            sys.exit()  # TODO: Remove after fix
+            file = file[19:]  # Make file relative to PDrive aka "rm *PDrive"
+            arguments.append("--include")
+            arguments.append(file)
+
+        rclone.sync(
+            source_path,
+            destination_path,
+            show_progress=True,
+            args=arguments,
+        )
 
 
 if __name__ == "__main__":
