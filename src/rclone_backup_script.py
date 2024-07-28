@@ -7,10 +7,6 @@ from pathlib import Path
 from sqlite3 import OperationalError, connect
 from subprocess import PIPE, CalledProcessError, TimeoutExpired, run
 
-from rclone_python import rclone
-
-# from subprocess import CalledProcessError, TimeoutExpired, run, PIPE
-
 
 class RCloneBackupScript:
     """
@@ -247,7 +243,11 @@ class RCloneBackupScript:
         """
         Sync modified files to Proton Drive
         """
-        arguments = [
+        command = [
+            "rclone",
+            "sync",
+            source_path,
+            destination_path,
             "-v",
             "--log-file",
             "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log",
@@ -255,15 +255,15 @@ class RCloneBackupScript:
 
         for file in self.modified:
             file = file.relative_to("/home/kr9sis/PDrive")
-            arguments.append("--include")
-            arguments.append(str(file))
+            command.append("--include")
+            command.append(str(file))
 
-        rclone.sync(
-            source_path,
-            destination_path,
-            show_progress=True,
-            args=arguments,
-        )
+        try:
+            run(command, check=True, timeout=1800)
+        except CalledProcessError as e:
+            print(f"Error occured with syncing files\nError:\n{e}")
+        except TimeoutExpired as e:
+            print(f"Error occured with syncing files\nError:\n{e}")
 
 
 if __name__ == "__main__":
