@@ -29,7 +29,6 @@ class RCloneBackupScript:
             self.check_or_setup_database(local_directory)
             self.get_modified_files(cwd=Path(local_directory))
             self.rclone_sync(local_directory, remote_directory)
-            ""
 
     def check_or_setup_database(self, local_directory):
         """
@@ -100,6 +99,42 @@ class RCloneBackupScript:
             print(f"CWD:\n{cwd}\nError occured with getting files command\nError:\n{e}")
             return ""
 
+    def create_files_dict(self, files_str, cwd: Path) -> dict[Path, str]:
+        """
+        Takes in the files string and turns it into a dictionary
+        where the file paths are keys and mod times are values
+        """
+        files_str = files_str.strip()
+        files_str = files_str.split("\n")
+        files = {}
+        for file in files_str:
+            file = file.split("\t")[1:3]
+
+            file_path = Path(file[1])
+            mod_time = file[0]
+
+            if file[1] == str(cwd) or file_path.name.startswith("."):
+                continue
+            files[file_path] = mod_time
+
+        return files
+
+    def create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
+        """
+        Get's the files from the DB and turns them into a dictionary
+        where the file paths are keys and mod times are values
+        """
+        db_files = self.conn.execute(
+            """
+            SELECT file_path, modification_time
+            FROM Times
+            WHERE parent_path = ?;
+            """,
+            (str(cwd),),
+        ).fetchall()
+
+        return {Path(item[0]): item[1] for item in db_files}
+
     def add_or_del_from_db(self, files, db_files):
         """
         Clean up difference between local directory and database
@@ -166,41 +201,12 @@ class RCloneBackupScript:
 
         self.conn.commit()
 
-    def check_if_modified(self, cwd: Path, files):
+    def check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
         """
         Check the given files and see if they have been
         modified or not if they have been then either check its
         subdirectories or log the file as modified
         """
-        files = files.strip()
-        files = files.split("\n")
-        tmp = {}
-        for file in files:
-            file = file.split("\t")[1:3]
-
-            file_path = Path(file[1])
-            mod_time = file[0]
-
-            if file[1] == str(cwd) or file_path.name.startswith("."):
-                continue
-            tmp[file_path] = mod_time
-
-        files = tmp
-        del tmp
-
-        db_files = self.conn.execute(
-            """
-            SELECT file_path, modification_time
-            FROM Times
-            WHERE parent_path = ?;
-            """,
-            (str(cwd),),
-        ).fetchall()
-
-        db_files = {Path(item[0]): item[1] for item in db_files}
-
-        if len(files) != len(db_files):
-            self.add_or_del_from_db(files, db_files)
 
         for file, modification_time in files.items():
             if modification_time != db_files[file]:
@@ -229,14 +235,19 @@ class RCloneBackupScript:
         if not files:
             return
 
-        self.check_if_modified(cwd, files)
+        files = self.create_files_dict(files, cwd)
+        db_files = self.create_db_files_dict(cwd)
+
+        if len(files) != len(db_files):
+            self.add_or_del_from_db(files, db_files)
+
+        self.check_if_modified(files, db_files)
 
     def rclone_sync(self, source_path, destination_path):
         """
         Sync modified files to Proton Drive
         """
         arguments = [
-            "--dry-run",
             "-v",
             "--log-file",
             "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log",
@@ -257,4 +268,3 @@ class RCloneBackupScript:
 
 if __name__ == "__main__":
     RCloneBackupScript()
-    "small modified"
