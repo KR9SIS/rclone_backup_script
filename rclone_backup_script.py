@@ -20,18 +20,18 @@ class RCloneBackupScript:
 
     def __init__(self) -> None:
         # Script setup
-        local_directory = "/home/kr9sis/PDrive/"
-        remote_directory = "PDrive:"
-        self.modified: set[str] = set()
+        local_directory = "/home/kr9sis/PDrive"
+        # remote_directory = "PDrive:"
+        self.modified: set[Path] = set()
 
         # Script logic
         with closing(connect("FileModifyTimes.db")) as self.conn:
-            self.check_or_setup_database()
-            self.get_modified_files(cwd=local_directory)
-            # self.rclone_sync(local_directory, remote_directory) #TODO: Uncomment
+            self.check_or_setup_database(local_directory)
+            self.get_modified_files(cwd=Path(local_directory))
+            # self.rclone_sync(local_directory, remote_directory)
             ""
 
-    def check_or_setup_database(self):
+    def check_or_setup_database(self, local_directory):
         """
         Function to set up SQLite database if it doesn't exist
         """
@@ -42,7 +42,7 @@ class RCloneBackupScript:
                 SELECT folder_path FROM Folders
                 WHERE folder_path = ?
                 """,
-                ("/home/kr9sis/PDrive/",),
+                ("/home/kr9sis/PDrive",),
             )
 
         except OperationalError:
@@ -64,7 +64,7 @@ class RCloneBackupScript:
                 INSERT INTO Folders (folder_path)
                 VALUES (?);
                 """,
-                ("/home/kr9sis/PDrive/",),
+                (local_directory,),
             )
 
             self.conn.execute(
@@ -80,7 +80,7 @@ class RCloneBackupScript:
 
             self.conn.commit()
 
-    def get_files_in_cwd(self, cwd) -> str:
+    def get_files_in_cwd(self, cwd: str) -> str:
         """
         Function to get all files within the current working directory
         """
@@ -91,8 +91,7 @@ class RCloneBackupScript:
             sort_out = run(
                 sort_cmd, check=True, timeout=10, input=du_out.stdout, stdout=PIPE
             )
-            print(sort_out.stdout.decode("utf-8"))
-            return ""
+            return sort_out.stdout.decode("utf-8")
 
         except CalledProcessError as e:
             print(f"CWD:\n{cwd}\nError occured with getting files command\nError:\n{e}")
@@ -105,70 +104,69 @@ class RCloneBackupScript:
         """
         Clean up difference between local directory and database
         """
-        local_files: set[str] = set(files)
-        cloud_files: set[str] = set(db_files)
+        local_files: set[Path] = set(files)
+        cloud_files: set[Path] = set(db_files)
 
         diff = local_files.symmetric_difference(cloud_files)
         self.modified = self.modified.union(diff)
         for file in diff:
             if file not in cloud_files:  # File was created locally
-                index = file.rfind("/", 0, -1)
-                parent_dir = file[0 : index + 1]
-                if isdir(file):
+                parent_dir = file.parent
+                if file.is_dir():
                     self.conn.execute(
                         """
                         INSERT INTO Folders(folder_path)
                         VALUES(?);
                         """,
-                        (file,),
+                        (str(file),),
                     )
                     self.conn.execute(
                         """
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
                         """,
-                        (parent_dir, file, files[file]),
+                        (str(parent_dir), str(file), files[file]),
                     )
                 else:
                     self.conn.execute(
-                        """INSERT INTO Times(parent_path, file_path, modification_time)
-                        VALUES(?,?,?);""",
-                        (parent_dir, file, files[file]),
+                        """
+                        INSERT INTO Times(parent_path, file_path, modification_time)
+                        VALUES(?,?,?);
+                        """,
+                        (str(parent_dir), str(file), files[file]),
                     )
 
                 db_files[file] = "0000-00-00 00:00"
 
             elif file not in local_files:  # File was deleted locally
-                if file[-1] == "/":
-                    self.conn.execute(
-                        """
-                        DELETE FROM Times 
-                        WHERE parent_path=?;
-                        """,
-                        (file,),
-                    )
+                self.conn.execute(
+                    """
+                    DELETE FROM Times 
+                    WHERE parent_path=?;
+                    """,
+                    (str(file),),
+                )
 
-                    self.conn.execute(
-                        """
-                        DELETE FROM Folders
-                        WHERE folder_path=?;
-                        """,
-                        (file,),
-                    )
-                else:
-                    self.conn.execute(
-                        """
-                        DELETE FROM Times
-                        WHERE file_path=?;
-                        """,
-                        (file,),
-                    )
+                self.conn.execute(
+                    """
+                    DELETE FROM Folders
+                    WHERE folder_path=?;
+                    """,
+                    (str(file),),
+                )
+                self.conn.execute(
+                    """
+                    DELETE FROM Times
+                    WHERE file_path=?;
+                    """,
+                    (str(file),),
+                )
 
                 files[file] = "0000-00-00 00:00"
 
         self.conn.commit()
 
-    def check_if_modified(self, cwd: str, files):
+    def check_if_modified(self, cwd: Path, files):
         """
         Check the given files and see if they have been
         modified or not if they have been then either check its
@@ -180,11 +178,11 @@ class RCloneBackupScript:
         for file in files:
             file = file.split("\t")[1:3]
 
-            file_path = file[1]
+            file_path = Path(file[1])
             mod_time = file[0]
 
-            if isdir(file_path):
-                file_path += "/"
+            if file[1] == cwd or file_path.name.startswith("."):
+                continue
             tmp[file_path] = mod_time
 
         files = tmp
@@ -199,16 +197,16 @@ class RCloneBackupScript:
             (cwd,),
         ).fetchall()
 
-        db_files = {item[0]: item[1] for item in db_files}
+        db_files = {Path(item[0]): item[1] for item in db_files}
 
         if len(files) != len(db_files):
             self.add_or_del_from_db(files, db_files)
 
         for file, modification_time in files.items():
             if modification_time != db_files[file]:
-                if isdir(file):
+                if file.is_dir():
                     self.get_modified_files(file)
-                elif isfile(file):
+                elif file.is_file():
                     self.modified.add(file)
                 self.conn.execute(
                     """
@@ -222,12 +220,12 @@ class RCloneBackupScript:
 
             self.conn.commit()
 
-    def get_modified_files(self, cwd: str):
+    def get_modified_files(self, cwd: Path):
         """
         Recursively checks the cwd and every subdirectory within it
         """
-        print(f"In {cwd}")
-        files = self.get_files_in_cwd(cwd)
+        print(f"In {str(cwd)}")
+        files = self.get_files_in_cwd(str(cwd))
         if not files:
             return
 
@@ -245,9 +243,9 @@ class RCloneBackupScript:
         ]
 
         for file in self.modified:
-            file = file[19:]  # Make file relative to PDrive aka "rm *PDrive"
+            file = file.relative_to("/home/kr9sis/PDrive")
             arguments.append("--include")
-            arguments.append(file)
+            arguments.append(str(file))
 
         rclone.sync(
             source_path,
