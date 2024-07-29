@@ -6,6 +6,7 @@ from contextlib import closing
 from pathlib import Path
 from sqlite3 import OperationalError, connect
 from subprocess import PIPE, CalledProcessError, TimeoutExpired, run
+from time import localtime, strftime
 
 
 class RCloneBackupScript:
@@ -19,15 +20,41 @@ class RCloneBackupScript:
         local_directory = "/home/kr9sis/PDrive"
         remote_directory = "PDrive:"
         self.modified: set[Path] = set()
-        self.failed_syncs: list[tuple[str]]
+        self.failed_syncs: list[tuple[str]] = []
+
+        file_dir = Path(__file__).resolve().parent
+        self.backup_log = file_dir / "backup.log"
+        db_file = file_dir / "FileModifyTimes.db"
+
+        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+            msg = f"# Program started at {strftime("%Y-%m-%d %H:%M", localtime())} #"
+            print(f"\n\n{"#"*len(msg)}\n{msg}", file=log_file)
 
         # Script logic
-        with closing(connect("FileModifyTimes.db")) as self.conn:
+        with closing(connect(db_file)) as self.conn:
             self.check_or_setup_database(local_directory)
             self.get_modified_files(cwd=Path(local_directory))
+
+            # backup_log and DB file are being changed as the program runs
+            # so they will never sync correctly
+            self.modified.remove(self.backup_log)
+            self.modified.remove(db_file)
+
+            with open(self.backup_log, "a", encoding="utf-8") as log_file:
+                print("Files to be modified are:", file=log_file)
+                if len(self.modified) < 1000:
+                    _ = [print(file, file=log_file) for file in self.modified]
+                    print(file=log_file)
+                else:
+                    print("Too many to list, maximum 1000 files\n", file=log_file)
+
             self.rclone_sync(local_directory, remote_directory)
             if self.failed_syncs:
                 self.update_failed_syncs_table()
+
+        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+            msg = f"# Program ended at {strftime("%Y-%m-%d %H:%M", localtime())} #"
+            print(f"\n{msg}\n{"#"*len(msg)}\n", file=log_file)
 
     def check_or_setup_database(self, local_directory):
         """
@@ -263,32 +290,36 @@ class RCloneBackupScript:
             "--protondrive-replace-existing-draft=true",
         ]
 
-        for file in self.modified:
-            file = file.relative_to("/home/kr9sis/PDrive")
-            cmd_with_file = []
-            cmd_with_file.extend(command)
-            cmd_with_file.extend(["--include", str(file)])
+        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+            for file in self.modified:
+                file = file.relative_to("/home/kr9sis/PDrive")
+                cmd_with_file = []
+                cmd_with_file.extend(command)
+                cmd_with_file.extend(["--include", str(file)])
 
-            try:
-                run(cmd_with_file, check=True, timeout=1800)
-            except CalledProcessError as e:
-                print(
-                    f"""
-                    Error occured with syncing file\n
-                    {file}\nError:\n{e}\n
-                    File will be added to FailedSyncs table
-                    """
-                )
-                self.failed_syncs.append((str(file),))
-            except TimeoutExpired as e:
-                print(
-                    f"""
-                    Error occured with syncing file\n
-                    {file}\nError:\n{e}\n
-                    File will be added to FailedSyncs table
-                    """
-                )
-                self.failed_syncs.append((str(file),))
+                print("Syncing:\n{file}")
+                try:
+                    run(cmd_with_file, check=True, timeout=300)
+                except CalledProcessError as e:
+                    print(
+                        f"""
+                        Error occured with syncing file\n
+                        {file}\nError:\n{e}\n
+                        File will be added to FailedSyncs table
+                        """,
+                        file=log_file,
+                    )
+                    self.failed_syncs.append((str(file),))
+                except TimeoutExpired as e:
+                    print(
+                        f"""
+                        Error occured with syncing file\n
+                        {file}\nError:\n{e}\n
+                        File will be added to FailedSyncs table
+                        """,
+                        file=log_file,
+                    )
+                    self.failed_syncs.append((str(file),))
 
     def update_failed_syncs_table(self):
         """
@@ -303,6 +334,10 @@ class RCloneBackupScript:
             self.failed_syncs,
         )
         self.conn.commit()
+
+        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+            print("Files which failed to sync", file=log_file)
+            _ = [print(file, file=log_file) for file in self.failed_syncs]
 
 
 if __name__ == "__main__":
