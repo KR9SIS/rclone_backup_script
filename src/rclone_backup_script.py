@@ -1,6 +1,9 @@
 #!/home/kr9sis/PDrive/Code/Py/rclone_backup_script/.venv/bin/python
 """
-modules docstring
+modules contains the class RCloneBackupScript which
+when instanciated will sync all files from a given
+directory that have been modified.
+By using rclone to connect to the repo
 """
 from contextlib import closing
 from pathlib import Path
@@ -59,6 +62,7 @@ class RCloneBackupScript:
     def check_or_setup_database(self, local_directory):
         """
         Function to set up SQLite database if it doesn't exist
+        and grab all files which failed to sync last time program was run
         """
         try:
             # Check if database is already set up
@@ -114,6 +118,8 @@ class RCloneBackupScript:
     def get_files_in_cwd(self, cwd: str) -> str:
         """
         Function to get all files within the current working directory
+        and their modification time and return a str containing that
+        information sorted with most recent modification first
         """
         du_cmd = ["du", "--time", "--all", "--max-depth=1", cwd]
         sort_cmd = ["sort", "-k2", "-r"]
@@ -153,7 +159,7 @@ class RCloneBackupScript:
 
     def create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
         """
-        Get's the files from the DB and turns them into a dictionary
+        Gets the files from the DB and turns them into a dictionary
         where the file paths are keys and mod times are values
         """
         db_files = self.conn.execute(
