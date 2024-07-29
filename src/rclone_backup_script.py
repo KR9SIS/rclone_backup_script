@@ -303,7 +303,7 @@ class RCloneBackupScript:
                 cmd_with_file.extend(command)
                 cmd_with_file.extend(["--include", str(file)])
 
-                print("Syncing:\n{file}")
+                print(f"Syncing:\n{file}", file=log_file)
                 try:
                     run(cmd_with_file, check=True, timeout=300)
                 except CalledProcessError as e:
