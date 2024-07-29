@@ -19,12 +19,15 @@ class RCloneBackupScript:
         local_directory = "/home/kr9sis/PDrive"
         remote_directory = "PDrive:"
         self.modified: set[Path] = set()
+        self.failed_syncs: list[tuple[str]]
 
         # Script logic
         with closing(connect("FileModifyTimes.db")) as self.conn:
             self.check_or_setup_database(local_directory)
             self.get_modified_files(cwd=Path(local_directory))
             self.rclone_sync(local_directory, remote_directory)
+            if self.failed_syncs:
+                self.update_failed_syncs_table()
 
     def check_or_setup_database(self, local_directory):
         """
@@ -32,17 +35,15 @@ class RCloneBackupScript:
         """
         try:
             # Check if database is already set up
-            self.conn.execute(
-                """
-                SELECT folder_path FROM Folders
-                WHERE folder_path = ?
-                """,
-                ("/home/kr9sis/PDrive",),
-            )
+            failed_syncs = self.conn.execute("SELECT * FROM FailedSyncs").fetchall()
+            self.conn.execute("DELETE FROM FailedSyncs")
+            self.conn.commit()
+            self.modified.union({Path(file[0]) for file in failed_syncs})
 
         except OperationalError:
             # If not, then set it up
             self.conn.execute("PRAGMA foreign_keys = ON;")
+            self.conn.execute("DROP TABLE IF EXISTS FailedSyncs")
             self.conn.execute("DROP TABLE IF EXISTS Times;")
             self.conn.execute("DROP TABLE IF EXISTS Folders;")
 
@@ -69,6 +70,14 @@ class RCloneBackupScript:
                     file_path TEXT PRIMARY KEY,
                     modification_time TEXT NOT NULL,
                     FOREIGN KEY (parent_path) REFERENCES Folders (folder_path)
+                );
+                """
+            )
+
+            self.conn.execute(
+                """
+                CREATE TABLE FailedSyncs (
+                    file_path TEXT PRIMARY KEY
                 );
                 """
             )
@@ -256,15 +265,44 @@ class RCloneBackupScript:
 
         for file in self.modified:
             file = file.relative_to("/home/kr9sis/PDrive")
-            command.append("--include")
-            command.append(str(file))
+            cmd_with_file = []
+            cmd_with_file.extend(command)
+            cmd_with_file.extend(["--include", str(file)])
 
-        try:
-            run(command, check=True, timeout=1800)
-        except CalledProcessError as e:
-            print(f"Error occured with syncing files\nError:\n{e}")
-        except TimeoutExpired as e:
-            print(f"Error occured with syncing files\nError:\n{e}")
+            try:
+                run(cmd_with_file, check=True, timeout=1800)
+            except CalledProcessError as e:
+                print(
+                    f"""
+                    Error occured with syncing file\n
+                    {file}\nError:\n{e}\n
+                    File will be added to FailedSyncs table
+                    """
+                )
+                self.failed_syncs.append((str(file),))
+            except TimeoutExpired as e:
+                print(
+                    f"""
+                    Error occured with syncing file\n
+                    {file}\nError:\n{e}\n
+                    File will be added to FailedSyncs table
+                    """
+                )
+                self.failed_syncs.append((str(file),))
+
+    def update_failed_syncs_table(self):
+        """
+        Add all files which failed to sync to the DB
+        for retrival and a retry next time the script is run
+        """
+        self.conn.executemany(
+            """
+            INSERT INTO FailedSyncs (file_path)
+            VALUES (?);
+            """,
+            self.failed_syncs,
+        )
+        self.conn.commit()
 
 
 if __name__ == "__main__":
