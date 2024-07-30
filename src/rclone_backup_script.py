@@ -6,10 +6,10 @@ directory that have been modified.
 By using rclone to connect to the repo
 """
 from contextlib import closing
+from datetime import datetime
 from pathlib import Path
 from sqlite3 import OperationalError, connect
 from subprocess import PIPE, CalledProcessError, TimeoutExpired, run
-from time import localtime, strftime
 
 
 class RCloneBackupScript:
@@ -29,9 +29,8 @@ class RCloneBackupScript:
         self.backup_log = file_dir / "backup.log"
         db_file = file_dir / "FileModifyTimes.db"
 
-        with open(self.backup_log, "a", encoding="utf-8") as log_file:
-            msg = f"# Program started at {strftime("%Y-%m-%d %H:%M", localtime())} #"
-            print(f"\n\n{"#"*len(msg)}\n{msg}", file=log_file)
+        init_helpers = self.InitHelpers()
+        start_time = init_helpers.write_start_end_times(self.backup_log)
 
         # Script logic
         with closing(connect(db_file)) as self.conn:
@@ -42,22 +41,98 @@ class RCloneBackupScript:
             # so they will never sync correctly
             self.modified.remove(self.backup_log)
             self.modified.remove(db_file)
+            init_helpers.write_mod_files(self.backup_log, self.modified)
 
-            with open(self.backup_log, "a", encoding="utf-8") as log_file:
+            if len(self.modified) < 50:
+                self.rclone_sync(local_directory, remote_directory)
+                if self.failed_syncs:
+                    self.update_failed_syncs_table()
+
+        if 50 < len(self.modified):
+            init_helpers.write_rclone_cmd(
+                self.backup_log, local_directory, remote_directory, self.modified
+            )
+        init_helpers.write_start_end_times(self.backup_log, start_time)
+
+    class InitHelpers:
+        """
+        Class designed to implement helper funcitons for RCloneBackupScript class __init__ method
+        """
+
+        def get_total_time(self, start_time, end_time):
+            """
+            Calculates the difference in hours, minutes, and seconds between start_time and end_time
+            """
+            timedelta_tt = end_time - start_time
+            total_seconds = timedelta_tt.total_seconds()
+            h, remainder = divmod(total_seconds, 3600)
+            m, s = divmod(remainder, 60)
+
+            return (h, m, s)
+
+        def write_start_end_times(self, backup_log, start_time=None):
+            """
+            Writes the start and end times to the backup_log
+            """
+            now = datetime.now()
+            with open(backup_log, "a", encoding="utf-8") as log_file:
+                if not start_time:
+                    msg = f"# Program started at {now.strftime("%Y-%m-%d %H:%M")} #"
+                    print(f"\n\n{"#"*len(msg)}\n{msg}", file=log_file)
+                    return now
+
+                h, m, s = self.get_total_time(start_time, now)
+                msg = f"""
+                    # Program ended at {now.strftime("%Y-%m-%d %H:%M")}. Total time {h}:{m}:{s} #
+                    """
+
+                print(f"\n{msg}\n{"#"*len(msg)}\n", file=log_file)
+
+                return None
+
+        def write_mod_files(self, backup_log, modified):
+            """
+            If there's less than 100 modified files, then it writes each to the file
+            otherwise it writes an error message
+            """
+            with open(backup_log, "a", encoding="utf-8") as log_file:
                 print("Files to be modified are:", file=log_file)
-                if len(self.modified) < 1000:
-                    _ = [print(file, file=log_file) for file in self.modified]
+                if len(modified) < 100:
+                    _ = [print(file, file=log_file) for file in modified]
                     print(file=log_file)
                 else:
-                    print("Too many to list, maximum 1000 files\n", file=log_file)
+                    print("Too many to list, maximum 100 files\n", file=log_file)
 
-            self.rclone_sync(local_directory, remote_directory)
-            if self.failed_syncs:
-                self.update_failed_syncs_table()
+        def write_rclone_cmd(
+            self, backup_log, local_directory, remote_directory, modified
+        ):
+            """
+            Creates the complete rclone command for the current run and prints it out
+            for the user to sync files which couldn't be synced
+            """
+            cmd_list = [
+                "rclone",
+                "sync",
+                local_directory,
+                remote_directory,
+                "-v",
+                "--log-file",
+                "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log",
+                "--protondrive-replace-existing-draft=true",
+            ]
+            cmd_list.extend([item for file in modified for item in ["--include", file]])
+            cmd = ", ".join(cmd_list)
 
-        with open(self.backup_log, "a", encoding="utf-8") as log_file:
-            msg = f"# Program ended at {strftime("%Y-%m-%d %H:%M", localtime())} #"
-            print(f"\n{msg}\n{"#"*len(msg)}\n", file=log_file)
+            with open(backup_log, "a", encoding="utf-8") as log_file:
+                print(
+                    f"""Sync was cancelled. Too many files, maximum 50 at a time. \n
+                    It is reccomended that you sync them manually yourself with the command
+                    \n\n
+                    {cmd}
+                    \n
+                    """,  # Create a list where you add "--include" and then the file from modified
+                    file=log_file,
+                )
 
     def check_or_setup_database(self, local_directory):
         """
@@ -268,7 +343,6 @@ class RCloneBackupScript:
         """
         Recursively checks the cwd and every subdirectory within it
         """
-        print(f"In {str(cwd)}")
         files = self.get_files_in_cwd(str(cwd))
         if not files:
             return
@@ -296,16 +370,22 @@ class RCloneBackupScript:
             "--protondrive-replace-existing-draft=true",
         ]
 
-        with open(self.backup_log, "a", encoding="utf-8") as log_file:
-            for file in self.modified:
-                file = file.relative_to("/home/kr9sis/PDrive")
-                cmd_with_file = []
-                cmd_with_file.extend(command)
-                cmd_with_file.extend(["--include", str(file)])
+        for file, file_num in zip(self.modified, range(1, len(self.modified))):
+            file = file.relative_to("/home/kr9sis/PDrive")
+            cmd_with_file = []
+            cmd_with_file.extend(command)
+            cmd_with_file.extend(["--include", str(file)])
 
-                print(f"Syncing:\n{file}", file=log_file)
+            with open(self.backup_log, "a", encoding="utf-8") as log_file:
+                print(
+                    f"Syncing file #{file_num}:\n{file}\n \
+                    Total synced: {file_num//len(self.modified)}%",
+                    file=log_file,
+                )
+
+            with open(self.backup_log, "a", encoding="utf-8") as log_file:
                 try:
-                    run(cmd_with_file, check=True, timeout=300)
+                    run(cmd_with_file, check=True, timeout=600)
                 except CalledProcessError as e:
                     print(
                         f"""
