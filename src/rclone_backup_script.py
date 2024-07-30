@@ -378,8 +378,10 @@ class RCloneBackupScript:
 
             with open(self.backup_log, "a", encoding="utf-8") as log_file:
                 print(
-                    f"Syncing file #{file_num}:\n{file}\n \
-                    Total synced: {file_num//len(self.modified)}%",
+                    f"""
+                    Syncing file #{file_num}:\n{file}\n
+                    Total synced: {file_num // len(self.modified)}%
+                    """,
                     file=log_file,
                 )
 
