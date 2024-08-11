@@ -27,7 +27,10 @@ class RCloneBackupScript:
         local_directory = "/home/kr9sis/PDrive"
         remote_directory = "PDrive:"
         self.modified: dict[Path, str] = {}
+        self.retried_syncs: set[str] = set()
         self.failed_syncs: list[tuple[str]] = []
+        self.file_count = -99999
+        self.cur_file = 0
 
         file_dir = Path(__file__).resolve().parent
         self.backup_log = file_dir / "backup.log"
@@ -38,18 +41,17 @@ class RCloneBackupScript:
 
         # Script logic
         with closing(connect(db_file)) as self.conn:
-            self.modified.update(check_or_setup_database(local_directory, self.conn))
+            check_or_setup_database(self, local_directory)
             self.get_modified_files(cwd=Path(local_directory))
 
-            # backup_log and DB file are being changed as the program runs
-            # so they will never sync correctly
-            self.modified.pop(self.backup_log, None)
-            self.modified.pop(db_file, None)
+            self.modified = init_helpers.filter_mod_files(
+                self.modified, self.backup_log, db_file
+            )
             init_helpers.write_mod_files(self.backup_log, self.modified)
 
             if len(self.modified) < 50:
                 rclone_sync(self, local_directory, remote_directory)
-                if self.failed_syncs:
+                if self.failed_syncs or self.retried_syncs:
                     update_failed_syncs_table(self)
 
         if 50 <= len(self.modified):
@@ -93,7 +95,6 @@ class RCloneBackupScript:
 
                 mod_time = stat_out[-36:-7]
                 filename = stat_out[:-37]
-                print(f"{filename} : {mod_time}")
                 ret.append((filename, mod_time))
 
         return ret
@@ -189,11 +190,11 @@ class RCloneBackupScript:
         """
 
         for file, modification_time in files.items():
-            if modification_time != db_files[file]:
-                if file.is_dir():
-                    self.get_modified_files(file)
-                elif file.is_file():
-                    self.modified[file] = modification_time
+            if file.is_dir():
+                self.get_modified_files(file)
+
+            if file.is_file() and modification_time != db_files[file]:
+                self.modified[file] = modification_time
                 self.conn.execute(
                     """
                     UPDATE Times SET modification_time = ?
@@ -201,8 +202,7 @@ class RCloneBackupScript:
                     """,
                     (modification_time, str(file)),
                 )
-            else:
-                break
+            self.cur_file += 1
 
         self.conn.commit()
 
@@ -210,7 +210,11 @@ class RCloneBackupScript:
         """
         Recursively checks the cwd and every subdirectory within it
         """
+        if self.file_count != -99999:
+            percent = round((self.cur_file / self.file_count) * 100)
+            print(f"{percent}%", end=" ")
         print(f"In {cwd}")
+
         files = self.get_files_in_cwd(cwd)
         if not files:
             return
@@ -226,3 +230,4 @@ class RCloneBackupScript:
 
 if __name__ == "__main__":
     RCloneBackupScript()
+# Mod to be deleted

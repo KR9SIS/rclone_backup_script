@@ -1,27 +1,35 @@
+"""
+Module docstring
+"""
+
 from pathlib import Path
 from sqlite3 import OperationalError
 
 
-def check_or_setup_database(local_directory, conn):
+def check_or_setup_database(self, local_directory):
     """
     Function to set up SQLite database if it doesn't exist
     and grab all files which failed to sync last time program was run
     """
     try:
         # Check if database is already set up
-        failed_syncs = conn.execute("SELECT * FROM FailedSyncs").fetchall()
-        conn.execute("DELETE FROM FailedSyncs")
-        conn.commit()
-        return {Path(file[0][0]): file[0][1] for file in failed_syncs}
+        failed_syncs = self.conn.execute(
+            "SELECT file_path, modification_time FROM FailedSyncs WHERE synced = 0"
+        ).fetchall()
+        self.file_count = self.conn.execute(
+            "SELECT COUNT(file_path) FROM Times"
+        ).fetchone()[0]
+        self.retried_syncs.union(set(failed_syncs))
+        self.modified.update({Path(file[0]): file[1] for file in failed_syncs})
 
     except OperationalError:
         # If not, then set it up
-        conn.execute("PRAGMA foreign_keys = ON;")
-        conn.execute("DROP TABLE IF EXISTS FailedSyncs")
-        conn.execute("DROP TABLE IF EXISTS Times;")
-        conn.execute("DROP TABLE IF EXISTS Folders;")
+        self.conn.execute("PRAGMA foreign_keys = ON;")
+        self.conn.execute("DROP TABLE IF EXISTS FailedSyncs")
+        self.conn.execute("DROP TABLE IF EXISTS Times;")
+        self.conn.execute("DROP TABLE IF EXISTS Folders;")
 
-        conn.execute(
+        self.conn.execute(
             """
             CREATE TABLE Folders (
                 folder_path TEXT PRIMARY KEY
@@ -29,7 +37,7 @@ def check_or_setup_database(local_directory, conn):
             """
         )
 
-        conn.execute(
+        self.conn.execute(
             """
             INSERT INTO Folders (folder_path)
             VALUES (?);
@@ -37,7 +45,7 @@ def check_or_setup_database(local_directory, conn):
             (local_directory,),
         )
 
-        conn.execute(
+        self.conn.execute(
             """
             CREATE TABLE Times (
                 parent_path TEXT,
@@ -48,14 +56,15 @@ def check_or_setup_database(local_directory, conn):
             """
         )
 
-        conn.execute(
+        self.conn.execute(
             """
             CREATE TABLE FailedSyncs (
                 file_path TEXT PRIMARY KEY,
-                modification_time TEXT NOT NULL
+                modification_time TEXT NOT NULL,
+                synced INTEGER NOT NULL,
+                FOREIGN KEY (file_path) REFERENCES Times (file_path)
             );
             """
         )
 
-        conn.commit()
-        return {}
+        self.conn.commit()

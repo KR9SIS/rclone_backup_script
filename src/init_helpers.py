@@ -27,15 +27,34 @@ class InitHelpers:
         with open(backup_log, "a", encoding="utf-8") as log_file:
             if not start_time:
                 msg = f"# Program started at {now.strftime("%Y-%m-%d %H:%M")} #"
-                print(f"\n\n{"#"*len(msg)}\n{msg}", file=log_file)
+                print(f"{"#"*len(msg)}\n{msg}", file=log_file)
                 return now
 
             h, m, s = self.get_total_time(start_time, now)
-            msg = f"# Program ended at {now.strftime("%Y-%m-%d %H:%M")}. Total time {h}:{m}:{s} #"
+            msg = f"# Program ended at {now.strftime("%Y-%m-%d %H:%M")} #"
+            dur = f"# Total time {h} h. {m} m. {s} s."
 
-            print(f"\n{msg}\n{"#"*len(msg)}\n", file=log_file)
+            print(
+                f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}\n\n",
+                file=log_file,
+            )
 
             return None
+
+    def filter_mod_files(self, modified, backup_log, db_file):
+        """
+        Filters out items in dirs_to_exclude and files_to_exclude
+        """
+        dirs_to_exclude = "__pycache__"
+        files_to_exclude = (backup_log, db_file)
+        # backup_log and DB file are being changed as the program runs
+        # so they will never sync correctly
+        return {
+            filename: mod_time
+            for filename, mod_time in modified.items()
+            if not any(part in dirs_to_exclude for part in filename.parts)
+            and filename not in files_to_exclude
+        }
 
     def write_mod_files(self, backup_log, modified):
         """
@@ -59,9 +78,9 @@ class InitHelpers:
             if len(modified) > 10000:
                 print(
                     """
-                    Sync was cancelled. Too many files, maximum 50 at a time.
-                    Command creation was also cancelled, maximum 10000 files.
-                    It is reccomended to sync entire local folder manually to reset.
+                    Sync was cancelled. Too many files, maximum 50 at a time.\n
+                    Command creation was also cancelled, maximum 10000 files.\n
+                    It is reccomended to sync entire local folder manually to reset.\n
                     """,
                     file=log_file,
                 )
@@ -87,6 +106,6 @@ class InitHelpers:
                     \n\n
                     {cmd}
                     \n
-                    """,  # Create a list where you add "--include" and then the file from modified
+                    """,
                     file=log_file,
                 )
