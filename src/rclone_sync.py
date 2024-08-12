@@ -74,7 +74,8 @@ def update_failed_syncs_table(self):
             UPDATE
             SET
                 modification_time = excluded.modification_time,
-                synced = excluded.synced;
+                synced = excluded.synced,
+                occurrance = occurrance + 1;
         """,
         self.failed_syncs,
     )

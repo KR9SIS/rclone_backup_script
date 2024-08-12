@@ -62,6 +62,7 @@ def check_or_setup_database(self, local_directory):
                 file_path TEXT PRIMARY KEY,
                 modification_time TEXT NOT NULL,
                 synced INTEGER NOT NULL,
+                occurance DEFAULT 0,
                 FOREIGN KEY (file_path) REFERENCES Times (file_path)
             );
             """
