@@ -1,0 +1,109 @@
+#######################################
+# Program started at 2024-08-10 21:07 #
+Files to be modified are:
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/main.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/rclone_sync.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/check_or_setup_db.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/test.py
+/home/kr9sis/PDrive/test_folder
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/init_helpers.py
+
+
+                    Error occured with syncing file
+
+                    test_folder
+Error:
+Command '['rclone', 'sync', '/home/kr9sis/PDrive', 'PDrive:', '-v', '--protondrive-replace-existing-draft=true', '--include', 'test_folder']' timed out after 599.9999831899986 seconds
+
+                    File will be added to FailedSyncs table
+                    
+Files which failed to sync
+('test_folder', '2024-08-04 15:31:30.737061041')
+# Program ended at 2024-08-10 21:20
+# Total time 0 h. 13 m. 35 s.     #
+###################################
+
+
+#######################################
+# Program started at 2024-08-10 21:51 #
+Files to be modified are:
+Too many to list, maximum 100 files
+
+
+                    Sync was cancelled. Too many files, maximum 50 at a time.
+
+                    Command creation was also cancelled, maximum 10000 files.
+
+                    It is reccomended to sync entire local folder manually to reset.
+
+                    
+# Program ended at 2024-08-10 21:54#
+# Total time 0 h. 2 m. 32 s.       #
+####################################
+
+#######################################
+# Program started at 2024-08-11 20:07 #
+Files to be modified are:
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/main.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/init_helpers.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/check_or_setup_db.py
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Luan Fang - portrait.jpg
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Luan Fang.jpg
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Luan Fang.xlsx
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Charactersheet-male.pdf
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Luan Fang.docx
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Luan Fang token.png
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Wildshape Table.png
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Averages for the new group.xlsx
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/Old/Luan Fang/Luan-Fang.pdf
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Naval Powers of the Primordial Sea.xlsx
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Primordial Sea Naval Navigation.xlsx
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Building a Town
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Building a Town/M038_-_Building_a_Town_with_Andri_1_1.pdf
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Building a Town/M038_-_Random_Tables_1.pdf
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Verchel Leander Mauhulakh Séamere
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Daelgi N'Lob
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Lucas Rakki
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Mi-rae Yong
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Yveldo the Mad Dog
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Daelgi N'Lob/Daelgi Froggo.docx
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Daelgi N'Lob/WILD-SURGE-TABLE.pdf
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Lucas Rakki/Lukas_Rakki_Gdoc.html
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Mi-rae Yong/Mi-rae.png
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Yveldo the Mad Dog/IMG_0853.jpg
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Yveldo the Mad Dog/IMG_0853 - Copy.jpg
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Verchel Leander Mauhulakh Séamere/The Kingdom of Mahoros.url
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Campaigns/Old/Elemental Chaos/Players/Verchel Leander Mauhulakh Séamere/Verchels Backstory.url
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/6d12 stat generation method.txt
+
+# Program ended at 2024-08-11 20:30 #
+# Total time 0 h. 23 m. 7 s.        #
+#####################################
+
+
+#######################################
+# Program started at 2024-08-11 20:45 #
+Files to be modified are:
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/main.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/rclone_sync.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/init_helpers.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/check_or_setup_db.py
+
+# Program ended at 2024-08-11 20:49 #
+# Total time 0 h. 3 m. 55 s.        #
+#####################################
+
+
+#######################################
+# Program started at 2024-08-12 00:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/In Use/Dhampir Soulknife/EricCavall_gsheet.html
+
+# Program ended at 2024-08-12 00:08 #
+# Total time 0 h. 2 m. 59 s.        #
+#####################################
+
+
