@@ -8,6 +8,9 @@ class InitHelpers:
     Class designed to implement helper funcitons for RCloneBackupScript class __init__ method
     """
 
+    def __init__(self, main_self):
+        self.main = main_self
+
     def get_total_time(self, start_time, end_time):
         """
         Calculates the difference in hours, minutes, and seconds between start_time and end_time
@@ -19,12 +22,12 @@ class InitHelpers:
 
         return (int(h), int(m), int(s))
 
-    def write_start_end_times(self, backup_log, start_time=None):
+    def write_start_end_times(self, start_time=None):
         """
         Writes the start and end times to the backup_log
         """
         now = datetime.now()
-        with open(backup_log, "a", encoding="utf-8") as log_file:
+        with open(self.main.backup_log, "a", encoding="utf-8") as log_file:
             if not start_time:
                 msg = f"# Program started at {now.strftime("%Y-%m-%d %H:%M")} #"
                 print(f"{"#"*len(msg)}\n{msg}", file=log_file)
@@ -41,41 +44,41 @@ class InitHelpers:
 
             return None
 
-    def filter_mod_files(self, modified, backup_log, db_file):
+    def filter_mod_files(self, db_file):
         """
         Filters out items in dirs_to_exclude and files_to_exclude
         """
         dirs_to_exclude = "__pycache__"
-        files_to_exclude = (backup_log, db_file)
+        files_to_exclude = (self.main.backup_log, db_file)
         # backup_log and DB file are being changed as the program runs
         # so they will never sync correctly
         return {
             filename: mod_time
-            for filename, mod_time in modified.items()
+            for filename, mod_time in self.main.modified.items()
             if not any(part in dirs_to_exclude for part in filename.parts)
             and filename not in files_to_exclude
         }
 
-    def write_mod_files(self, backup_log, modified):
+    def write_mod_files(self):
         """
         If there's less than 100 modified files, then it writes each to the file
         otherwise it writes an error message
         """
-        with open(backup_log, "a", encoding="utf-8") as log_file:
+        with open(self.main.backup_log, "a", encoding="utf-8") as log_file:
             print("Files to be modified are:", file=log_file)
-            if len(modified) < 100:
-                _ = [print(file, file=log_file) for file in modified]
+            if len(self.main.modified) < 100:
+                _ = [print(file, file=log_file) for file in self.main.modified]
                 print(file=log_file)
             else:
                 print("Too many to list, maximum 100 files\n", file=log_file)
 
-    def write_rclone_cmd(self, backup_log, local_directory, remote_directory, modified):
+    def write_rclone_cmd(self, local_directory, remote_directory):
         """
         Creates the complete rclone command for the current run and prints it out
         for the user to sync files which couldn't be synced
         """
-        with open(backup_log, "a", encoding="utf-8") as log_file:
-            if len(modified) > 10000:
+        with open(self.main.backup_log, "a", encoding="utf-8") as log_file:
+            if len(self.main.modified) > 10000:
                 print(
                     """
                     Sync was cancelled. Too many files, maximum 50 at a time.\n
@@ -96,7 +99,11 @@ class InitHelpers:
                     "--protondrive-replace-existing-draft=true",
                 ]
                 cmd_list.extend(
-                    [item for file in modified for item in ["--include", str(file)]]
+                    [
+                        item
+                        for file in self.main.modified
+                        for item in ["--include", str(file)]
+                    ]
                 )
                 cmd = ", ".join(cmd_list)
 

@@ -36,18 +36,16 @@ class RCloneBackupScript:
         self.backup_log = file_dir / "backup.log"
         db_file = file_dir / "FileModifyTimes.db"
 
-        init_helpers = InitHelpers()
-        start_time = init_helpers.write_start_end_times(self.backup_log)
+        init_helpers = InitHelpers(self)
+        start_time = init_helpers.write_start_end_times()
 
         # Script logic
         with closing(connect(db_file)) as self.conn:
             check_or_setup_database(self, local_directory)
             self.get_modified_files(cwd=Path(local_directory))
 
-            self.modified = init_helpers.filter_mod_files(
-                self.modified, self.backup_log, db_file
-            )
-            init_helpers.write_mod_files(self.backup_log, self.modified)
+            self.modified = init_helpers.filter_mod_files(db_file)
+            init_helpers.write_mod_files()
 
             if 0 < len(self.modified) < 50:
                 rclone_sync(self, local_directory, remote_directory)
@@ -55,10 +53,8 @@ class RCloneBackupScript:
                     update_failed_syncs_table(self)
 
         if 50 <= len(self.modified):
-            init_helpers.write_rclone_cmd(
-                self.backup_log, local_directory, remote_directory, self.modified
-            )
-        init_helpers.write_start_end_times(self.backup_log, start_time)
+            init_helpers.write_rclone_cmd(local_directory, remote_directory)
+        init_helpers.write_start_end_times(start_time)
 
     def get_files_in_cwd(self, cwd) -> list[str]:
         """
