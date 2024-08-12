@@ -230,4 +230,3 @@ class RCloneBackupScript:
 
 if __name__ == "__main__":
     RCloneBackupScript()
-# Mod to be deleted
