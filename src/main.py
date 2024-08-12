@@ -222,7 +222,7 @@ class RCloneBackupScript:
         files = {Path(file[0]): file[1] for file in files}
         db_files = self.create_db_files_dict(cwd)
 
-        if len(files) != len(db_files):
+        if len(files) != len(db_files) or files != db_files:
             self.add_or_del_from_db(files, db_files)
 
         self.check_if_modified(files, db_files)
