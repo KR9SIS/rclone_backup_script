@@ -49,7 +49,7 @@ class RCloneBackupScript:
             )
             init_helpers.write_mod_files(self.backup_log, self.modified)
 
-            if len(self.modified) < 50:
+            if 0 < len(self.modified) < 50:
                 rclone_sync(self, local_directory, remote_directory)
                 if self.failed_syncs or self.retried_syncs:
                     update_failed_syncs_table(self)
