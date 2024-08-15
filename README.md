@@ -25,6 +25,6 @@ All of the program code is confined within the src folder.
 9. Finishes by logging at what time the program is finished and how long it took to run.
 
 ### Possible future implementations:
-- SQLite Create, Read, Update, Delete class to replace all multiline string SQL calls within the program.
+- SQLite Create, Read, Update, Delete class to replace multiline string SQL calls within the program.
 
 
