@@ -68,7 +68,7 @@ def update_failed_syncs_table(self):
     self.conn.executemany(
         """
         INSERT INTO FailedSyncs (file_path, modification_time, synced)
-        VALUES (?, ?, 0)
+        VALUES (?, ?, 1)
         ON CONFLICT (file_path)
         DO
             UPDATE
@@ -99,3 +99,17 @@ def update_failed_syncs_table(self):
     with open(self.backup_log, "a", encoding="utf-8") as log_file:
         print("Files which failed to sync", file=log_file)
         _ = [print(file, file=log_file) for file in self.failed_syncs]
+
+
+def rclone_check_connection(self, destination_path) -> bool:
+    """Function to query the rclone connection and check if it's active"""
+    try:
+        run(["rclone", "lsf", "--dirs-only", destination_path], check=True, timeout=60)
+        return True
+    except (CalledProcessError, TimeoutExpired) as e:
+        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+            print(
+                f"Connection could not be established to remote, exiting run\n Error: {e}",
+                file=log_file,
+            )
+        return False

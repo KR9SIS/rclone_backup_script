@@ -13,7 +13,7 @@ from subprocess import CalledProcessError, TimeoutExpired, run
 
 from check_or_setup_db import check_or_setup_database
 from init_helpers import InitHelpers
-from rclone_sync import rclone_sync, update_failed_syncs_table
+from rclone_sync import rclone_check_connection, rclone_sync, update_failed_syncs_table
 
 
 class RCloneBackupScript:
@@ -34,26 +34,27 @@ class RCloneBackupScript:
 
         file_dir = Path(__file__).resolve().parent
         self.backup_log = file_dir / "backup.log"
-        db_file = file_dir / "FileModifyTimes.db"
+        db_file = file_dir / "RCloneBackupScript.db"
+        # db_file = file_dir / "RCloneBackupScript.db"
 
         init_helpers = InitHelpers(self)
         start_time = init_helpers.write_start_end_times()
+        if rclone_check_connection(self, remote_directory):
+            # Script logic
+            with closing(connect(db_file)) as self.conn:
+                check_or_setup_database(self, local_directory)
+                self.get_modified_files(cwd=Path(local_directory))
 
-        # Script logic
-        with closing(connect(db_file)) as self.conn:
-            check_or_setup_database(self, local_directory)
-            self.get_modified_files(cwd=Path(local_directory))
+                self.modified = init_helpers.filter_mod_files(db_file)
+                init_helpers.write_mod_files()
 
-            self.modified = init_helpers.filter_mod_files(db_file)
-            init_helpers.write_mod_files()
+                if 0 < len(self.modified) < 50:
+                    rclone_sync(self, local_directory, remote_directory)
+                    if self.failed_syncs or self.retried_syncs:
+                        update_failed_syncs_table(self)
 
-            if 0 < len(self.modified) < 50:
-                rclone_sync(self, local_directory, remote_directory)
-                if self.failed_syncs or self.retried_syncs:
-                    update_failed_syncs_table(self)
-
-        if 50 <= len(self.modified):
-            init_helpers.write_rclone_cmd(local_directory, remote_directory)
+            if 50 <= len(self.modified):
+                init_helpers.write_rclone_cmd(local_directory, remote_directory)
         init_helpers.write_start_end_times(start_time)
 
     def get_files_in_cwd(self, cwd) -> list[str]:
