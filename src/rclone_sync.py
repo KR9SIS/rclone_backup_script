@@ -106,10 +106,10 @@ def rclone_check_connection(self, destination_path) -> bool:
     try:
         run(["rclone", "lsf", "--dirs-only", destination_path], check=True, timeout=60)
         return True
-    except (CalledProcessError, TimeoutExpired) as e:
+    except (CalledProcessError, TimeoutExpired):
         with open(self.backup_log, "a", encoding="utf-8") as log_file:
             print(
-                f"Connection could not be established to remote, exiting run\n Error: {e}",
+                "Connection could not be established to remote, exiting run\n",
                 file=log_file,
             )
         return False

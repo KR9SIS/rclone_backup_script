@@ -34,7 +34,7 @@ class InitHelpers:
                 return now
 
             h, m, s = self.get_total_time(start_time, now)
-            msg = f"# Program ended at {now.strftime("%Y-%m-%d %H:%M")} #"
+            msg = f"#  Program ended at {now.strftime("%Y-%m-%d %H:%M")}  #"
             dur = f"# Total time {h} h. {m} m. {s} s."
 
             print(
