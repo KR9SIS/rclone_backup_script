@@ -20,7 +20,7 @@ def rclone_sync(self, source_path, destination_path):
         "--protondrive-replace-existing-draft=true",
     ]
     file_num = 0
-    for file_path, mod_time in self.modified.items():
+    for file_path in self.modified:
         file_path = file_path.relative_to("/home/kr9sis/PDrive")
         cmd_with_file = []
         cmd_with_file.extend(command)
@@ -43,7 +43,7 @@ def rclone_sync(self, source_path, destination_path):
                     """,
                     file=log_file,
                 )
-                self.failed_syncs.append((str(file_path), mod_time))
+                self.failed_syncs.add(str(file_path))
             except TimeoutExpired as e:
                 print(
                     f"""
@@ -53,13 +53,14 @@ def rclone_sync(self, source_path, destination_path):
                     """,
                     file=log_file,
                 )
-                self.failed_syncs.append((str(file_path), mod_time))
+                self.failed_syncs.add(str(file_path))
 
             file_num += 1
             percent = round((file_num / len(self.modified)) * 100)
             print(f"Total synced: {percent}%\n")
 
 
+# BUG: Unnecisary function
 def update_failed_syncs_table(self):
     """
     Add all files which failed to sync to the DB
@@ -104,7 +105,12 @@ def update_failed_syncs_table(self):
 def rclone_check_connection(self, destination_path) -> bool:
     """Function to query the rclone connection and check if it's active"""
     try:
-        run(["rclone", "lsf", "--dirs-only", destination_path], check=True, timeout=60)
+        _ = run(
+            ["rclone", "lsd", destination_path],
+            check=True,
+            timeout=60,
+            capture_output=True,
+        )
         return True
     except (CalledProcessError, TimeoutExpired):
         with open(self.backup_log, "a", encoding="utf-8") as log_file:
