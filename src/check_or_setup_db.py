@@ -68,24 +68,4 @@ def check_or_setup_database(self, local_directory):
             """
         )
 
-        self.conn.execute(
-            """
-            CREATE TABLE UserSpecs (
-                username TEXT PRIMARY KEY,
-                local_directory TEXT,
-                remote_directory TEXT
-            );
-            """
-        )
-
-        self.conn.execute(
-            """
-            CREATE TABLE CurrentUser (
-                id INTEGER PRIMARY KEY CHECK (id = 0),
-                username TEXT,
-                FOREIGN KEY (username) REFERENCES UserSpecs (username)
-            );
-            """
-        )
-
         self.conn.commit()
