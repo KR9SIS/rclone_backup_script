@@ -1,7 +1,7 @@
 #!/home/kr9sis/PDrive/Code/Py/rclone_backup_script/.venv/bin/python
 """
 modules contains the class RCloneBackupScript which
-when instanciated will sync all files from a given
+when instansiated will sync all files from a given
 directory that have been modified.
 By using rclone to connect to the repo
 """
