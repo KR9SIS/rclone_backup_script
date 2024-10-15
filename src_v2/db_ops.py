@@ -49,4 +49,20 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
             """
         )
 
+        self.conn.execute(
+            """
+            CREATE TABLE Dates (
+                date TEXT PRIMARY KEY
+                file_count INTEGER CHECK(file_count >= 0)
+            );
+            """
+        )
+        self.conn.execute(
+            """
+            CREATE TABLE log,
+            date TEXT,
+            filename
+            """
+        )
+
         self.conn.commit()
