@@ -62,14 +62,14 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
             """
             CREATE TABLE Log (
                 date TEXT,
-                filename TEXT,
+                file_path TEXT,
                 synced INTEGER CHECK (synced IN (0, 1)),
-                FOREIGN KEY (date) REFERENCES Dates (date)
+                PRIMARY KEY (date, file_path),
+                FOREIGN KEY (date) REFERENCES Dates (date),
+                FOREIGN KEY (file_path) REFERENCES Times (file_path)
             );
             """
         )
-
-        self.db_conn.commit()
 
 
 def write_mod_files(self):
@@ -90,7 +90,31 @@ def write_mod_files(self):
 
     self.db_conn.executemany(
         """
-        INSERT INTO Log (date, filename, synced) VALUES (?, ?, ?)
+        INSERT INTO Log (date, file_path, synced) VALUES (?, ?, ?)
         """,
         file_data,
+    )
+
+
+def update_db_mod_file(self, filename, modification_time):
+    """
+    Function which updates the sync status and modification_time for a specific file path
+    """
+    now = datetime.now().strftime("%Y-%m-%d")
+    self.db_conn.execute(
+        """
+        UPDATE Log
+        SET synced = ?
+        WHERE date = ? AND file_path = ?
+        """,
+        (1, now, filename),
+    )
+
+    self.db_conn.execute(
+        """
+        UPDATE Times
+        SET modification_time = ?
+        WHERE file_path = ?
+        """,
+        (modification_time, filename),
     )
