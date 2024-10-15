@@ -27,15 +27,29 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str]]:
                 stat_out = stat_out.stdout.decode("utf-8")
 
             except CalledProcessError as e:
+                now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
-                    f"Error occured with stat command\nCWD:\n{cwd}\nCMD:\n{stat_cmd}\nError:\n{e}",
+                    dedent(
+                        f"""
+                        \n{now}\nError occured with stat command
+                        \nCurrent working Directory:\n{cwd}
+                        \nCommand:\n{stat_cmd}\nError:\n{e}
+                        """
+                    ),
                     file=log_file,
                 )
                 stat_out = ""
 
             except TimeoutExpired as e:
+                now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
-                    f"Error occured with stat command\nCWD:\n{cwd}\nCMD:\n{stat_cmd}\nError:\n{e}",
+                    dedent(
+                        f"""
+                        \n{now}\nError occured with stat command
+                        \nCurrent working Directory:\n{cwd}
+                        \nCommand:\n{stat_cmd}\nError:\n{e}
+                        """
+                    ),
                     file=log_file,
                 )
                 stat_out = ""
