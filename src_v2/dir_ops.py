@@ -13,8 +13,7 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str]]:
     and their modification time and return a str containing that
     information sorted with most recent modification first
     """
-
-    with open(self.backup_log, "a", encoding="utf-8") as log_file:
+    with open(self.error_log, "a", encoding="utf-8") as log_file:
         ret = []
         for file in cwd.iterdir():
             if file.name.startswith(".") or file.is_symlink():

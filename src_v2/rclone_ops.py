@@ -25,12 +25,9 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         cmd_with_file.extend(command)
         cmd_with_file.extend(["--include", str(rel_file_path)])
 
-        with open(self.backup_log, "a", encoding="utf-8") as log_file:
-            print(
-                f"Syncing file #{file_num}:\n{rel_file_path}\n",
-            )
+        print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
 
-        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+        with open(self.error_log, "a", encoding="utf-8") as log_file:
             try:
                 run(cmd_with_file, check=True, timeout=600)
                 self.update_db_mod_time(file_path, self.mod_times[file_path])
@@ -71,7 +68,7 @@ def rclone_check_connection(self, DESTINATION_PATH) -> bool:
         return True
 
     except (CalledProcessError, TimeoutExpired):
-        with open(self.backup_log, "a", encoding="utf-8") as log_file:
+        with open(self.error_log, "a", encoding="utf-8") as log_file:
             print(
                 "Connection could not be established to remote, exiting run\n",
                 file=log_file,

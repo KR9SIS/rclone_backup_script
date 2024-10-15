@@ -30,7 +30,7 @@ class RCloneBackupScript:
         self.cur_file = 0
 
         file_dir = Path(__file__).resolve().parent
-        self.backup_log = file_dir / "backup.log"
+        self.error_log = file_dir / "error.log"
         db_file = file_dir / "RCloneBackupScript.db"
 
         if rclone_check_connection(self, REMOTE_DIRECTORY):
