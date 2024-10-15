@@ -26,7 +26,11 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         cmd_with_file.extend(command)
         cmd_with_file.extend(["--include", str(rel_file_path)])
 
-        print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
+        _ = (
+            print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
+            if self.stdout is True
+            else None
+        )
 
         with open(self.error_log, "a", encoding="utf-8") as log_file:
             try:
@@ -54,7 +58,7 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
 
             file_num += 1
             percent = round((file_num / len(self.mod_times)) * 100)
-            print(f"Total synced: {percent}%\n")
+            _ = print(f"Total synced: {percent}%\n") if self.stdout is True else None
 
 
 def rclone_check_connection(self, DESTINATION_PATH) -> bool:

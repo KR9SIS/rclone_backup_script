@@ -172,10 +172,11 @@ def get_modified_files(self, cwd: Path):
     """
     Recursively checks the cwd and every subdirectory within it
     """
-    if self.file_count != -99999:
-        percent = round((self.cur_file / self.file_count) * 100)
-        print(f"{percent}%", end=" ")
-    print(f"In {cwd}")
+    if self.stdout:
+        if self.file_count != -99999:
+            percent = round((self.cur_file / self.file_count) * 100)
+            print(f"{percent}%", end=" ")
+        print(f"In {cwd}")
 
     files = self.get_files_in_cwd(cwd)
     if not files:
