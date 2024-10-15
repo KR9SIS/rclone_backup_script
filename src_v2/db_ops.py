@@ -53,7 +53,7 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
         self.db_conn.execute(
             """
             CREATE TABLE Dates (
-                date TEXT PRIMARY KEY,
+                date TEXT PRIMARY KEY
             );
             """
         )
