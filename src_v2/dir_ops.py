@@ -114,7 +114,7 @@ def add_or_del_from_db(self, files, db_files):
                         """,
                     (str(parent_dir), str(file), files[file]),
                 )
-            self.modified[file] = files[file]
+            self.mod_times[file] = files[file]
             # Make sure mod time is different so the file will be synced
             db_files[file] = "0000-00-00 00:00"
 
@@ -142,7 +142,7 @@ def add_or_del_from_db(self, files, db_files):
                 (str(file),),
             )
 
-            self.modified[file] = db_files[file]
+            self.mod_times[file] = db_files[file]
 
             # Make sure mod time is different so the file will be synced
             files[file] = "0000-00-00 00:00"
@@ -162,10 +162,8 @@ def check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
             self.get_modified_files(file)
 
         if file.is_file() and modification_time != db_files[file]:
-            self.modified[file] = modification_time
+            self.mod_times[file] = modification_time
         self.cur_file += 1
-
-    self.conn.commit()
 
 
 def get_modified_files(self, cwd: Path):
@@ -180,7 +178,7 @@ def get_modified_files(self, cwd: Path):
 
     files = self.get_files_in_cwd(cwd)
     if not files:
-        return
+        return self.mod_times
 
     files = {Path(f_tup[0]): f_tup[1] for f_tup in files}
     db_files = self.create_db_files_dict(cwd)
@@ -189,3 +187,5 @@ def get_modified_files(self, cwd: Path):
         self.add_or_del_from_db(files, db_files)
 
     self.check_if_modified(files, db_files)
+
+    return self.mod_times
