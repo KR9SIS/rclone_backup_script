@@ -54,7 +54,6 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
             """
             CREATE TABLE Dates (
                 date TEXT PRIMARY KEY,
-                file_count INTEGER DEFAULT 0 CHECK (file_count >= 0)
             );
             """
         )
@@ -78,14 +77,12 @@ def write_mod_files(self):
     """
     now = datetime.now().strftime("%Y-%m-%d")
     file_data = [(now, str(filename), 0) for filename in self.mod_times]
-    file_count = len(file_data)
 
     self.db_conn.execute(
         """
-        INSERT INTO Dates (date, file_count) VALUES (?, ?)
-        ON CONFLICT (date) DO UPDATE SET file_count = file_count + ?
+        INSERT INTO Dates (date) VALUES (?)
         """,
-        (now, file_count, file_count),
+        now,
     )
 
     self.db_conn.executemany(
