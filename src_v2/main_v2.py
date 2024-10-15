@@ -41,3 +41,5 @@ class RCloneBackupScript:
                 self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
                 write_db_mod_files(self)
                 rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
+if __name__ == "__main__":
+    RCloneBackupScript()
