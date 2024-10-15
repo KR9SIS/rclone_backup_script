@@ -2,6 +2,7 @@
 Functions which interact with rclone
 """
 
+from datetime import datetime
 from subprocess import CalledProcessError, TimeoutExpired, run
 
 
@@ -69,8 +70,9 @@ def rclone_check_connection(self, DESTINATION_PATH) -> bool:
 
     except (CalledProcessError, TimeoutExpired):
         with open(self.error_log, "a", encoding="utf-8") as log_file:
+            now = datetime.now().strftime("%Y-%m-%d %H:%M")
             print(
-                "Connection could not be established to remote, exiting run\n",
+                f"\n{now}\nConnection could not be established to remote, exiting run\n",
                 file=log_file,
             )
         return False
