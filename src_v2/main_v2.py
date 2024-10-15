@@ -13,7 +13,7 @@ from sqlite3 import connect
 
 from db_ops import get_count_or_setup_db
 from dir_ops import get_modified_files
-from rclone_ops import rclone_check_connection
+from rclone_ops import rclone_check_connection, rclone_sync
 
 
 class RCloneBackupScript:
@@ -32,9 +32,10 @@ class RCloneBackupScript:
 
         file_dir = Path(__file__).resolve().parent
         self.error_log = file_dir / "error.log"
-        db_file = file_dir / "RCloneBackupScript.db"
+        self.db_file = file_dir / "RCloneBackupScript.db"
 
         if rclone_check_connection(self, REMOTE_DIRECTORY):
-            with closing(connect(db_file)) as self.db_conn:
+            with closing(connect(self.db_file)) as self.db_conn:
                 get_count_or_setup_db(self, LOCAL_DIRECTORY)
                 get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
+                rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
