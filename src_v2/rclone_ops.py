@@ -3,62 +3,10 @@ Functions which interact with rclone
 """
 
 from datetime import datetime
+from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, run
 
-
-def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
-    """
-    Sync modified files to Proton Drive
-    """
-    command = [
-        "rclone",
-        "sync",
-        SOURCE_PATH,
-        DESTINATION_PATH,
-        "-v",
-        "--protondrive-replace-existing-draft=true",
-    ]
-
-    file_num = 0
-    for file_path in self.mod_times:
-        rel_file_path = file_path.relative_to(SOURCE_PATH)
-        cmd_with_file = []
-        cmd_with_file.extend(command)
-        cmd_with_file.extend(["--include", str(rel_file_path)])
-
-        _ = (
-            print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
-            if self.stdout is True
-            else None
-        )
-
-        with open(self.error_log, "a", encoding="utf-8") as log_file:
-            try:
-                run(cmd_with_file, check=True, timeout=600)
-                self.update_db_mod_time(file_path, self.mod_times[file_path])
-
-            except CalledProcessError as e:
-                print(
-                    f"""
-                    Error occured with syncing file\n
-                    {rel_file_path}\nError:\n{e}\n
-                    File mod time will not be updated this run
-                    """,
-                    file=log_file,
-                )
-            except TimeoutExpired as e:
-                print(
-                    f"""
-                    Error occured with syncing file\n
-                    {rel_file_path}\nError:\n{e}\n
-                    File mod time will not be updated this run
-                    """,
-                    file=log_file,
-                )
-
-            file_num += 1
-            percent = round((file_num / len(self.mod_times)) * 100)
-            _ = print(f"Total synced: {percent}%\n") if self.stdout is True else None
+from db_ops import update_db_mod_file
 
 
 def rclone_check_connection(self, DESTINATION_PATH) -> bool:
@@ -80,3 +28,70 @@ def rclone_check_connection(self, DESTINATION_PATH) -> bool:
                 file=log_file,
             )
         return False
+
+
+def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
+    """
+    Sync modified files to Proton Drive
+    """
+
+    def sync_func(self, file_num: int, file_path: Path) -> int:
+        rel_file_path = file_path.relative_to(SOURCE_PATH)
+        cmd_with_file = []
+        cmd_with_file.extend(command)
+        cmd_with_file.extend(["--include", str(rel_file_path)])
+        _ = (
+            print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
+            if self.stdout is True
+            else None
+        )
+        with open(self.error_log, "a", encoding="utf-8") as log_file:
+            try:
+                run(cmd_with_file, check=True, timeout=600)
+                update_db_mod_file(self, file_path, self.mod_times[file_path])
+
+            except CalledProcessError as e:
+                print(
+                    f"""
+                    Error occured with syncing file\n
+                    {rel_file_path}\nError:\n{e}\n
+                    File mod time will not be updated this run
+                    """,
+                    file=log_file,
+                )
+            except TimeoutExpired as e:
+                print(
+                    f"""
+                    Error occured with syncing file\n
+                    {rel_file_path}\nError:\n{e}\n
+                    File mod time will not be updated this run
+                    """,
+                    file=log_file,
+                )
+            if self.stdout:
+                file_num += 1
+                percent = round((file_num / len(self.mod_times)) * 100)
+                print(f"Total synced: {percent}%\n")
+
+        return file_num
+
+    command = [
+        "rclone",
+        "sync",
+        SOURCE_PATH,
+        DESTINATION_PATH,
+        "-v",
+        "--protondrive-replace-existing-draft=true",
+    ]
+
+    file_num = 0
+    for file_path in self.mod_times:
+        if any(
+            path in file_path
+            for path in ("__pycache__", "error.log", "RCloneBackupScript.db")
+        ):
+            continue
+        file_num = sync_func(self, file_num, file_path)
+
+    file_num = sync_func(self, file_num, self.error_log)
+    file_num = sync_func(self, file_num, self.db_file)
