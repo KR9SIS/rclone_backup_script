@@ -9,7 +9,7 @@ from subprocess import CalledProcessError, TimeoutExpired, run
 from textwrap import dedent
 
 
-def get_files_in_cwd(self, cwd: Path) -> list[tuple[str]]:
+def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
     """
     Function to get all files within the current working directory
     and their modification time and return a str containing that
@@ -159,7 +159,7 @@ def check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
 
     for file, modification_time in files.items():
         if file.is_dir():
-            self.get_modified_files(file)
+            get_modified_files(self, file)
 
         if file.is_file() and modification_time != db_files[file]:
             self.mod_times[file] = modification_time
@@ -176,16 +176,16 @@ def get_modified_files(self, cwd: Path):
             print(f"{percent}%", end=" ")
         print(f"In {cwd}")
 
-    files = self.get_files_in_cwd(cwd)
+    files = get_files_in_cwd(self, cwd)
     if not files:
         return self.mod_times
 
     files = {Path(f_tup[0]): f_tup[1] for f_tup in files}
-    db_files = self.create_db_files_dict(cwd)
+    db_files = create_db_files_dict(self, cwd)
 
     if len(files) != len(db_files) or files != db_files:
-        self.add_or_del_from_db(files, db_files)
+        add_or_del_from_db(self, files, db_files)
 
-    self.check_if_modified(files, db_files)
+    check_if_modified(self, files, db_files)
 
     return self.mod_times
