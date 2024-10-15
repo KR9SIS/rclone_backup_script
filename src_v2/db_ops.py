@@ -71,7 +71,7 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
         )
 
 
-def write_mod_files(self):
+def write_db_mod_files(self):
     """
     Writes mod files to database to keep track of which files were modified
     """
