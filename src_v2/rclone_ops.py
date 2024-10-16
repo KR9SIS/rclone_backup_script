@@ -45,12 +45,12 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
             if self.stdout is True
             else None
         )
-        with open(self.error_log, "a", encoding="utf-8") as log_file:
-            try:
-                run(cmd_with_file, check=True, timeout=600)
-                update_db_mod_file(self, file_path, self.mod_times[file_path])
+        try:
+            run(cmd_with_file, check=True, timeout=600)
+            update_db_mod_file(self, file_path, self.mod_times[file_path])
 
-            except CalledProcessError as e:
+        except CalledProcessError as e:
+            with open(self.error_log, "a", encoding="utf-8") as log_file:
                 print(
                     f"""
                     Error occured with syncing file\n
@@ -59,7 +59,8 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
                     """,
                     file=log_file,
                 )
-            except TimeoutExpired as e:
+        except TimeoutExpired as e:
+            with open(self.error_log, "a", encoding="utf-8") as log_file:
                 print(
                     f"""
                     Error occured with syncing file\n
@@ -68,10 +69,10 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
                     """,
                     file=log_file,
                 )
-            if self.stdout:
-                file_num += 1
-                percent = round((file_num / len(self.mod_times)) * 100)
-                print(f"Total synced: {percent}%\n")
+        if self.stdout:
+            file_num += 1
+            percent = round((file_num / len(self.mod_times)) * 100)
+            print(f"Total synced: {percent}%\n")
 
         return file_num
 
