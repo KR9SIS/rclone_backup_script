@@ -35,13 +35,17 @@ class RCloneBackupScript:
         self.error_log = file_dir / "error.log"
         self.db_file = file_dir / "RCloneBackupScript.db"
 
-        if rclone_check_connection(self, REMOTE_DIRECTORY):
-            with closing(connect(self.db_file)) as self.db_conn:
-                setup = get_count_or_setup_db(self, LOCAL_DIRECTORY)
-                self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
-                if setup is False:  # Only sync if database existed
-                    write_db_mod_files(self)
-                    rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
+        if not rclone_check_connection(self, REMOTE_DIRECTORY):
+            return
+
+        with closing(connect(self.db_file)) as self.db_conn:
+            setup = get_count_or_setup_db(self, LOCAL_DIRECTORY)
+            self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
+            if setup is True:
+                return  # Only sync if database existed
+
+            write_db_mod_files(self)
+            rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
 
 
 if __name__ == "__main__":
