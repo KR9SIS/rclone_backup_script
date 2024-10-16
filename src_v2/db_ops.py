@@ -70,6 +70,9 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
             );
             """
         )
+
+        self.db_conn.commit()
+
         return True
 
 
@@ -93,6 +96,9 @@ def write_db_mod_files(self):
         """,
         file_data,
     )
+
+    self.db_conn.commit()
+
     if self.stdout:
         print("\nModified files:")
         _ = [print(file_path) for file_path in self.mod_times]
@@ -121,3 +127,4 @@ def update_db_mod_file(self, file_path: str, modification_time: str):
         """,
         (modification_time, file_path),
     )
+    self.db_conn.commit()
