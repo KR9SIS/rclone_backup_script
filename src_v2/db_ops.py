@@ -99,7 +99,7 @@ def write_db_mod_files(self):
         print()
 
 
-def update_db_mod_file(self, filename, modification_time):
+def update_db_mod_file(self, file_path: str, modification_time: str):
     """
     Function which updates the sync status and modification_time for a specific file path
     """
@@ -110,7 +110,7 @@ def update_db_mod_file(self, filename, modification_time):
         SET synced = ?
         WHERE date = ? AND file_path = ?
         """,
-        (1, now, filename),
+        (1, now, file_path),
     )
 
     self.db_conn.execute(
@@ -119,5 +119,5 @@ def update_db_mod_file(self, filename, modification_time):
         SET modification_time = ?
         WHERE file_path = ?
         """,
-        (modification_time, filename),
+        (modification_time, file_path),
     )

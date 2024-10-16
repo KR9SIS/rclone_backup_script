@@ -47,7 +47,7 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         )
         try:
             run(cmd_with_file, check=True, timeout=600)
-            update_db_mod_file(self, file_path, self.mod_times[file_path])
+            update_db_mod_file(self, str(file_path), self.mod_times[file_path])
 
         except CalledProcessError as e:
             with open(self.error_log, "a", encoding="utf-8") as log_file:
