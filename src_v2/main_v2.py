@@ -16,10 +16,11 @@ class RCloneBackupScript:
     Script to check if files in a local directory have been modified and if so
     then send them and their modifications to a remote at PDrive:
     1. Check connection
-    2. Get or setup database
-    3. Get modified files
-    4. Filter out unneeded modified files
+    2. Get or setup database connection
+    3. Recursively get modified files from local directory
+        - Filter out unneeded files
     5. Sync modified files
+        - Filter out unneeded modified files
         - If sync was successfull then update modification time in DB
     """
 
