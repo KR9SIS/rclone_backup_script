@@ -84,7 +84,7 @@ def write_db_mod_files(self):
         """
         INSERT INTO Dates (date) VALUES (?)
         """,
-        now,
+        (now,),
     )
 
     self.db_conn.executemany(
