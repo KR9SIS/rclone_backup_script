@@ -52,4 +52,10 @@ class RCloneBackupScript:
 
 
 if __name__ == "__main__":
-    RCloneBackupScript()
+    try:
+        RCloneBackupScript()
+    except Exception as e:
+        # Logging any unknown exceptions which might happen.
+        # Because this program will be called automatically and without anyone watching stdout.
+        with open("error.log", "a", encoding="utf-8") as err_file:
+            print(e, file=err_file)
