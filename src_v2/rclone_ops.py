@@ -85,12 +85,12 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         "--protondrive-replace-existing-draft=true",
     ]
 
+    self.excluded_paths.extend(["RCloneBackupScript.db", "error.log"])
+    # Make sure these two files are the last to go, since they are possibly edited at runtime
+
     file_num = 0
     for file_path in self.mod_times:
-        if any(
-            path in file_path
-            for path in ("__pycache__", "error.log", "RCloneBackupScript.db")
-        ):
+        if any(excluded in str(file_path) for excluded in self.excluded_paths):
             continue
         file_num = sync_func(self, file_num, file_path)
 

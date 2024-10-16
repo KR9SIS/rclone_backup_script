@@ -31,6 +31,8 @@ class RCloneBackupScript:
         self.mod_times: dict[Path, str] = {}
         self.file_count = -99999
         self.cur_file = 0
+        self.excluded_paths: list[str] = ["__pycache__"]
+        # Dotfiles and synlinks are also excluded in get_files_in_cwd()
 
         file_dir = Path(__file__).resolve().parent
         self.error_log = file_dir / "error.log"
