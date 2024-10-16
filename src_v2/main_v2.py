@@ -24,7 +24,7 @@ class RCloneBackupScript:
     """
 
     def __init__(self) -> None:
-        self.stdout = False
+        self.stdout = True
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
         self.mod_times: dict[Path, str] = {}
@@ -37,9 +37,12 @@ class RCloneBackupScript:
 
         if rclone_check_connection(self, REMOTE_DIRECTORY):
             with closing(connect(self.db_file)) as self.db_conn:
-                get_count_or_setup_db(self, LOCAL_DIRECTORY)
+                setup = get_count_or_setup_db(self, LOCAL_DIRECTORY)
                 self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
-                write_db_mod_files(self)
-                rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
+                if setup is False:  # Only sync if database existed
+                    write_db_mod_files(self)
+                    rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
+
+
 if __name__ == "__main__":
     RCloneBackupScript()

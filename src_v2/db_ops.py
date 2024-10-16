@@ -6,7 +6,7 @@ from datetime import datetime
 from sqlite3 import OperationalError
 
 
-def get_count_or_setup_db(self, LOCAL_DIRECTORY):
+def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
     """
     Function to set up SQLite database if it doesn't exist
     and grab all files which failed to sync last time program was run
@@ -16,6 +16,7 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
         self.file_count = self.db_conn.execute(
             "SELECT COUNT(file_path) FROM Times"
         ).fetchone()[0]
+        return False
 
     except OperationalError:
         # If not, then set it up
@@ -69,6 +70,7 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY):
             );
             """
         )
+        return True
 
 
 def write_db_mod_files(self):
