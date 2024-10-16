@@ -15,18 +15,18 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
     and their modification time and return a str containing that
     information sorted with most recent modification first
     """
-    with open(self.error_log, "a", encoding="utf-8") as log_file:
-        ret = []
-        for file in cwd.iterdir():
-            if file.name.startswith(".") or file.is_symlink():
-                continue  # Get rid of all dotfiles and symlinks
+    ret = []
+    for file in cwd.iterdir():
+        if file.name.startswith(".") or file.is_symlink():
+            continue  # Get rid of all dotfiles and symlinks
 
-            stat_cmd = ["stat", "-c", "%n %y", str(file)]
-            try:
-                stat_out = run(stat_cmd, check=True, timeout=10, capture_output=True)
-                stat_out = stat_out.stdout.decode("utf-8")
+        stat_cmd = ["stat", "-c", "%n %y", str(file)]
+        try:
+            stat_out = run(stat_cmd, check=True, timeout=10, capture_output=True)
+            stat_out = stat_out.stdout.decode("utf-8")
 
-            except CalledProcessError as e:
+        except CalledProcessError as e:
+            with open(self.error_log, "a", encoding="utf-8") as log_file:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
                     dedent(
@@ -40,7 +40,8 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
                 )
                 stat_out = ""
 
-            except TimeoutExpired as e:
+        except TimeoutExpired as e:
+            with open(self.error_log, "a", encoding="utf-8") as log_file:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
                     dedent(
@@ -54,10 +55,10 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
                 )
                 stat_out = ""
 
-            if stat_out:
-                mod_time = stat_out[-36:-7]
-                filename = stat_out[:-37]
-                ret.append((filename, mod_time))
+        if stat_out:
+            mod_time = stat_out[-36:-7]
+            filename = stat_out[:-37]
+            ret.append((filename, mod_time))
 
     return ret
 
@@ -67,7 +68,7 @@ def create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
     Gets the files from the DB and turns them into a dictionary
     where the file paths are keys and mod times are values
     """
-    db_files = self.conn.execute(
+    db_files = self.db_conn.execute(
         """
             SELECT file_path, modification_time
             FROM Times
@@ -92,14 +93,14 @@ def add_or_del_from_db(self, files, db_files):
         if file not in cloud_files:  # File was created locally
             parent_dir = file.parent
             if file.is_dir():
-                self.conn.execute(
+                self.db_conn.execute(
                     """
                         INSERT INTO Folders(folder_path)
                         VALUES(?);
                         """,
                     (str(file),),
                 )
-                self.conn.execute(
+                self.db_conn.execute(
                     """
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
@@ -107,7 +108,7 @@ def add_or_del_from_db(self, files, db_files):
                     (str(parent_dir), str(file), files[file]),
                 )
             else:
-                self.conn.execute(
+                self.db_conn.execute(
                     """
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
@@ -119,7 +120,7 @@ def add_or_del_from_db(self, files, db_files):
             db_files[file] = "0000-00-00 00:00"
 
         elif file not in local_files:  # File was deleted locally
-            self.conn.execute(
+            self.db_conn.execute(
                 """
                     DELETE FROM Times 
                     WHERE parent_path=?;
@@ -127,14 +128,14 @@ def add_or_del_from_db(self, files, db_files):
                 (str(file),),
             )
 
-            self.conn.execute(
+            self.db_conn.execute(
                 """
                     DELETE FROM Folders
                     WHERE folder_path=?;
                     """,
                 (str(file),),
             )
-            self.conn.execute(
+            self.db_conn.execute(
                 """
                     DELETE FROM Times
                     WHERE file_path=?;
@@ -147,7 +148,7 @@ def add_or_del_from_db(self, files, db_files):
             # Make sure mod time is different so the file will be synced
             files[file] = "0000-00-00 00:00"
 
-    self.conn.commit()
+    self.db_conn.commit()
 
 
 def check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
