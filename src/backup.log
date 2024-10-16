@@ -1,16 +1,396 @@
 #######################################
-# Program started at 2024-08-12 12:02 #
+# Program started at 2024-10-06 21:50 #
 Files to be modified are:
-/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/main.py
-/home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/init_helpers.py
-/home/kr9sis/PDrive/Code/Py/rclone_backup_script/README.md
-/home/kr9sis/PDrive/JoplinBackup/default/all_notebooks.jex
-/home/kr9sis/PDrive/JoplinBackup/default/profile/plugins/com.whatever.quick-links.jpl
-/home/kr9sis/PDrive/JoplinBackup/default/profile/settings.json
-/home/kr9sis/PDrive/JoplinBackup/README.md
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/setup_user.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/rclone_sync.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/check_or_setup_db.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/Coverage.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/requirements.txt
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/README.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/demo
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/test_template
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/label.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/user.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/event.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template/interface.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template/server.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/user.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_event_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/models_test.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_label_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_user_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/test_template/interface_test.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/test_template/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/code-of-conduct.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/decision-protocol.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/sprint1/Sprint01.pdf
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/sprint1/SPRINT1.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/sprint2/Definition of Done.pdf
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/sprint2/SPRINT2.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/README.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/Coverage.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/requirements.txt
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/test_template
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/demo
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/README.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/label.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/user.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/event.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/server_template
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/routes.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/server_template/interface.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/server_template/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/server_template/server.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/user.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/event.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/label.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_label_model.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/models_test.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_user_model.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_event_model.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/test_template/interface_test.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/test_template/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/code-of-conduct.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/decision-protocol.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/sprint1/Sprint01.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/sprint1/SPRINT1.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/sprint2/Definition of Done.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/sprint2/SPRINT2.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/README.md
+              
 
-# Program ended at 2024-08-12 12:07 #
-# Total time 0 h. 4 m. 28 s.        #
-#####################################
+                    
+#  Program ended at 2024-10-06 21:53  #
+# Total time 0 h. 2 m. 24 s.          #
+#######################################
+
+
+
+
+
+
+#######################################
+# Program started at 2024-10-07 14:00 #
+Files to be modified are:
+
+#  Program ended at 2024-10-07 14:02  #
+# Total time 0 h. 2 m. 39 s.          #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-07 15:07 #
+Files to be modified are:
+
+#  Program ended at 2024-10-07 15:10  #
+# Total time 0 h. 2 m. 36 s.          #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-08 10:05 #
+Files to be modified are:
+
+#  Program ended at 2024-10-08 10:07  #
+# Total time 0 h. 2 m. 18 s.          #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-09 14:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/label.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/user.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/event.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/user.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/print_functions.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/dummy_data.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_events.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_labels.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_menu.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_users.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_user.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/ui.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/README-EN.md
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/mainUI.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/dobot_api.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/images
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/main.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/LICENSE
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/PythonExample.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/README.md
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/images/robot.ico
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/checkTcpMode_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/main.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/updateIP_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/excetion.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/feed_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/checkTcpMode.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/move.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/netConnect_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/updateIP.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/netConnect.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/feed.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/move_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/runpy.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/excetion_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/main_en.png
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_servo.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_controller.py
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_controller.json
+/home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_servo.json
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/label.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/user.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/event.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/routes.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/user.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/event.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/label.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/dummy_data.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/print_functions.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_menu.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_labels.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_events.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_users.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_label.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_user.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_event.py
+
+Sync was cancelled. Too many files, maximum 50 at a time. 
+
+                    It is reccomended that you sync them manually yourself with the command
+                    
+
+
+                    rclone, sync, /home/kr9sis/PDrive, PDrive:, -v, --log-file, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log, --protondrive-replace-existing-draft=true, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/label.csv, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/user.csv, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/event.csv, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/user.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/label.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions/__init__.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/__init__.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/print_functions.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/dummy_data.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_events.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_labels.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_menu.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_users.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_event.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_label.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_user.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/ui.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/README-EN.md, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/mainUI.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/dobot_api.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/images, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/main.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/LICENSE, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/PythonExample.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/README.md, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/images/robot.ico, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/checkTcpMode_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/main.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/updateIP_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/excetion.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/feed_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/checkTcpMode.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/move.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/netConnect_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/updateIP.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/netConnect.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/feed.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/move_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/runpy.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/excetion_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/picture/main_en.png, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_servo.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_controller.py, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_controller.json, --include, /home/kr9sis/PDrive/Code/Py/DOBOT_MG400/TCP-IP-4Axis-Python/files/alarm_servo.json, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/label.csv, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/user.csv, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/event.csv, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/routes.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/user.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/event.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/label.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions/__init__.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/__init__.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/dummy_data.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/print_functions.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_menu.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_labels.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_events.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_users.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_label.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_user.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_event.py
+                    
+
+                    
+#  Program ended at 2024-10-09 14:07  #
+# Total time 0 h. 2 m. 23 s.          #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-10 09:05 #
+Files to be modified are:
+
+#  Program ended at 2024-10-10 09:07  #
+# Total time 0 h. 2 m. 9 s.           #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-11 09:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/School/RVK_UNI/6th_sem
+/home/kr9sis/PDrive/School/RVK_UNI/6th_sem/Starfsnám
+/home/kr9sis/PDrive/School/RVK_UNI/6th_sem/Starfsnám/Kristofer_Helgi_Sigurdsson-Ferilskrá-2024 .docx.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/6th_sem/Starfsnám/Kristofer_Helgi_Sigurdsson-CV-2024.docx.pdf
+
+#  Program ended at 2024-10-11 09:08  #
+# Total time 0 h. 3 m. 22 s.          #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-12 13:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/School/RVK_UNI/7th_sem
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/W8_integral_applications.nb
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/derivative_practice
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/Exploration/QuizWeek8-final.nb
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/derivative_practice/autogen-solutions.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/derivative_practice/autogen-problems.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/6th_sem/Starfsnám/ferilskra.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/7th_sem/gamall_reiknirit_afangi.txt
+
+#  Program ended at 2024-10-12 13:12  #
+# Total time 0 h. 7 m. 17 s.          #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-13 10:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/places.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/places.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/routes.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/event.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/Exploration/QuizWeek8-final.nb
+
+#  Program ended at 2024-10-13 10:10  #
+# Total time 0 h. 5 m. 1 s.           #
+#######################################
+
+
+#######################################
+# Program started at 2024-10-14 00:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/test_folder
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src_v2
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/setup_user.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/main.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/rclone_sync.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/check_or_setup_db.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src_v2/rclone_ops.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src_v2/db_ops.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src_v2/main_v2.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/run.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/label.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/user.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/event.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template/interface.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/places.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/user.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_event_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_label_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_user_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/print_functions.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_users.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_user.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_menu.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_labels.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_events.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/dummy_data.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/requirements.txt
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/decision-protocol.md
+/home/kr9sis/PDrive/Table Top RolePlaying Games/Dungeons & Dragons 5e/Playable characters/In Use/Eric Cavall/EC_Backstory.html
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/Exploration/Exploration2_answers.pdf
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Stærðfræðigreining/Exploration/Exploration2_answers.nb
+
+
+                    Error occured with syncing file
+
+                    test_folder
+Error:
+Command '['rclone', 'sync', '/home/kr9sis/PDrive', 'PDrive:', '-v', '--protondrive-replace-existing-draft=true', '--include', 'test_folder']' timed out after 599.9999835880008 seconds
+
+                    File will be added to FailedSyncs table
+                    
+#######################################
+# Program started at 2024-10-14 11:05 #
+Files to be modified are:
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src_v2
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/setup_user.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/main.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/rclone_sync.py
+/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/check_or_setup_db.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/label.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/user.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/event.csv
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template/interface.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/places.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/user.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_event_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_label_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_user_model.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/__init__.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/print_functions.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_users.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_label.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_user.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_event.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_menu.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_labels.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_events.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/dummy_data.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/run.py
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/requirements.txt
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/decision-protocol.md
+/home/kr9sis/PDrive/Code/Py/T-303-HUGB/README.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/run.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/label.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/user.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/event.csv
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/routes.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/server_template/interface.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/places.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/user.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/event.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/label.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_event_model.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_label_model.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_user_model.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/__init__.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/print_functions.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_users.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_label.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_user.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_event.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_menu.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_labels.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_events.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/dummy_data.py
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/requirements.txt
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/decision-protocol.md
+/home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/README.md
+
+Sync was cancelled. Too many files, maximum 50 at a time. 
+
+                    It is reccomended that you sync them manually yourself with the command
+                    
+
+
+                    rclone, sync, /home/kr9sis/PDrive, PDrive:, -v, --log-file, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/src/backup.log, --protondrive-replace-existing-draft=true, --include, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src_v2, --include, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/setup_user.py, --include, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/main.py, --include, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/rclone_sync.py, --include, /home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/src/check_or_setup_db.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/label.csv, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/user.csv, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/data/event.csv, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/routes.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/server_template/interface.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/places.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/__init__.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/user.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/event.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/app/models/label.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_event_model.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_label_model.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/tests/test_user_model.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/exceptions/__init__.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/__init__.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/print_functions.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_users.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_label.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_user.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/create_windows/view_create_event.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_menu.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_labels.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/view_windows/view_all_events.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/src/user_interface/dummy_data.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/run.py, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/requirements.txt, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/docs/decision-protocol.md, --include, /home/kr9sis/PDrive/Code/Py/T-303-HUGB/README.md, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/run.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/label.csv, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/user.csv, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/data/event.csv, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/routes.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/server_template/interface.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/places.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/__init__.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/user.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/event.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/app/models/label.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_event_model.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_label_model.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/tests/test_user_model.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/exceptions/__init__.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/__init__.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/print_functions.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_users.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_label.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_user.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/create_windows/view_create_event.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_menu.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_labels.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/view_windows/view_all_events.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/src/user_interface/dummy_data.py, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/requirements.txt, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/docs/decision-protocol.md, --include, /home/kr9sis/PDrive/School/RVK_UNI/5th_sem/Hugbúnaðarfræði/gitlab/README.md
+                    
+
+                    
+#  Program ended at 2024-10-14 11:07  #
+# Total time 0 h. 2 m. 18 s.          #
+#######################################
 
 
