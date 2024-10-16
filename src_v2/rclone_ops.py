@@ -85,8 +85,8 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         "--protondrive-replace-existing-draft=true",
     ]
 
-    self.excluded_paths.extend(["RCloneBackupScript.db", "error.log"])
-    # Make sure these two files are the last to go, since they are possibly edited at runtime
+    self.excluded_paths.extend(["RCloneBackupScript.db"])
+    # Make sure the database file is the last to go to minimize dataloss, since it is edited at runtime
 
     file_num = 0
     for file_path in self.mod_times:
@@ -94,5 +94,4 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
             continue
         file_num = sync_func(self, file_num, file_path)
 
-    file_num = sync_func(self, file_num, self.error_log)
     file_num = sync_func(self, file_num, self.db_file)
