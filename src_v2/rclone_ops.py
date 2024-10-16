@@ -35,16 +35,27 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
     Sync modified files to Proton Drive
     """
 
-    def sync_func(self, file_num: int, file_path: Path) -> int:
+    command = [
+        "rclone",
+        "sync",
+        SOURCE_PATH,
+        DESTINATION_PATH,
+        "-v",
+        "--protondrive-replace-existing-draft=true",
+    ]
+
+    file_num = 0
+    for file_path in self.mod_times:
         rel_file_path = file_path.relative_to(SOURCE_PATH)
         cmd_with_file = []
         cmd_with_file.extend(command)
         cmd_with_file.extend(["--include", str(rel_file_path)])
-        _ = (
+        if self.stdout:
+            file_num += 1
+            percent = round((file_num / len(self.mod_times)) * 100)
+            print(f"Total synced: {percent}%\n")
             print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
-            if self.stdout is True
-            else None
-        )
+
         try:
             run(cmd_with_file, check=True, timeout=600)
             update_db_mod_file(self, str(file_path), self.mod_times[file_path])
@@ -69,29 +80,3 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
                     """,
                     file=log_file,
                 )
-        if self.stdout:
-            file_num += 1
-            percent = round((file_num / len(self.mod_times)) * 100)
-            print(f"Total synced: {percent}%\n")
-
-        return file_num
-
-    command = [
-        "rclone",
-        "sync",
-        SOURCE_PATH,
-        DESTINATION_PATH,
-        "-v",
-        "--protondrive-replace-existing-draft=true",
-    ]
-
-    self.excluded_paths.extend(["RCloneBackupScript.db"])
-    # Make sure the database file is the last to go to minimize dataloss, since it is edited at runtime
-
-    file_num = 0
-    for file_path in self.mod_times:
-        if any(excluded in str(file_path) for excluded in self.excluded_paths):
-            continue
-        file_num = sync_func(self, file_num, file_path)
-
-    file_num = sync_func(self, file_num, self.db_file)

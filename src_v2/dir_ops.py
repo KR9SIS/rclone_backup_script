@@ -17,8 +17,12 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
     """
     ret = []
     for file in cwd.iterdir():
-        if file.name.startswith(".") or file.is_symlink():
-            continue  # Get rid of all dotfiles and symlinks
+        if (
+            file.name.startswith(".")
+            or file.is_symlink()
+            or any(excluded in str(file) for excluded in self.excluded_paths)
+        ):
+            continue  # Get rid of all dotfiles, symlinks and explicitly excluded files
 
         stat_cmd = ["stat", "-c", "%n %y", str(file)]
         try:
