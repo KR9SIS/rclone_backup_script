@@ -13,14 +13,18 @@ def check_or_setup_database(self, local_directory):
     """
     try:
         # Check if database is already set up
-        failed_syncs = self.conn.execute(
-            "SELECT file_path, modification_time FROM FailedSyncs WHERE synced = 0"
-        ).fetchall()
+        self.retried_syncs.union(
+            set(
+                self.conn.execute(
+                    "SELECT file_path, modification_time FROM FailedSyncs WHERE synced = 0"
+                ).fetchall()
+            )
+        )
         self.file_count = self.conn.execute(
             "SELECT COUNT(file_path) FROM Times"
         ).fetchone()[0]
-        self.retried_syncs.union(set(failed_syncs))
-        self.modified.update({Path(file[0]): file[1] for file in failed_syncs})
+
+        self.modified.update({Path(file[0]): file[1] for file in self.retried_syncs})
 
     except OperationalError:
         # If not, then set it up

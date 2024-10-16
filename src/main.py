@@ -1,7 +1,7 @@
 #!/home/kr9sis/PDrive/Code/Py/rclone_backup_script/.venv/bin/python
 """
 modules contains the class RCloneBackupScript which
-when instanciated will sync all files from a given
+when instansiated will sync all files from a given
 directory that have been modified.
 By using rclone to connect to the repo
 """
@@ -28,7 +28,7 @@ class RCloneBackupScript:
         remote_directory = "PDrive:"
         self.modified: dict[Path, str] = {}
         self.retried_syncs: set[str] = set()
-        self.failed_syncs: list[tuple[str]] = []
+        self.failed_syncs: set[str] = set()
         self.file_count = -99999
         self.cur_file = 0
 
@@ -52,6 +52,8 @@ class RCloneBackupScript:
                     rclone_sync(self, local_directory, remote_directory)
                     if self.failed_syncs or self.retried_syncs:
                         update_failed_syncs_table(self)
+
+                    self.update_mod_times()
 
             if 50 <= len(self.modified):
                 init_helpers.write_rclone_cmd(local_directory, remote_directory)
@@ -187,18 +189,11 @@ class RCloneBackupScript:
         """
 
         for file, modification_time in files.items():
-            if file.is_dir():
+            if file.is_dir() and not file.is_symlink():
                 self.get_modified_files(file)
 
             if file.is_file() and modification_time != db_files[file]:
                 self.modified[file] = modification_time
-                self.conn.execute(
-                    """
-                    UPDATE Times SET modification_time = ?
-                    WHERE file_path = ?
-                    """,
-                    (modification_time, str(file)),
-                )
             self.cur_file += 1
 
         self.conn.commit()
@@ -223,6 +218,23 @@ class RCloneBackupScript:
             self.add_or_del_from_db(files, db_files)
 
         self.check_if_modified(files, db_files)
+
+    def update_mod_times(self):
+        """
+        Update modification times of correctly synced files
+        """
+        synced = {
+            str(file) for file in self.modified if str(file) not in self.failed_syncs
+        }
+        for file in synced:
+            self.conn.execute(
+                """
+                UPDATE Times SET modification_time = ?
+                WHERE file_path = ?
+                """,
+                (self.modified[Path(file)], file),
+            )
+            print(f"{file}: {self.modified[Path(file)]}")
 
 
 if __name__ == "__main__":
