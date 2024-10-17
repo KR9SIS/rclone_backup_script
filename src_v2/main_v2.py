@@ -28,7 +28,8 @@ class RCloneBackupScript:
     """
 
     def __init__(self) -> None:
-        self.stdout = False
+
+        self.stdout = True
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
         self.mod_times: dict[Path, str] = {}
@@ -36,7 +37,6 @@ class RCloneBackupScript:
         self.cur_file = 0
         self.excluded_paths: set[str] = {"__pycache__"}
         # Dotfiles and synlinks are also excluded in get_files_in_cwd()
-
         file_dir = Path(__file__).resolve().parent
         self.error_log = file_dir / "error.log"
         self.db_file = file_dir / "RCloneBackupScript.db"
@@ -71,25 +71,25 @@ class RCloneBackupScript:
         """
         Writes the start and end times to the run log
         """
-        now = datetime.now().strftime("%Y-%m-%d %H:%M")
+        now = datetime.now()
 
         run_log = Path(__file__).resolve().parent / "run.log"
         with open(run_log, "a", encoding="utf-8") as log_file:
             if not start_time:
-                msg = f"# Program started at {now} #"
+                msg = f"# Start {now.strftime("%Y-%m-%d %H:%M")} #"
                 print(f"{"#"*len(msg)}\n{msg}", file=log_file)
                 return now
 
             h, m, s = self.__get_total_time(start_time, now)
-            msg = f"#  Program ended at {now}  #"
-            dur = f"# Total time {h} h. {m} m. {s} s."
+            msg = f"# End   {now.strftime("%Y-%m-%d %H:%M")} #"
+            dur = f"# Time  {h} h. {m} m. {s} s."
 
             print(
                 f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}\n\n",
                 file=log_file,
             )
 
-            return None
+            return ""
 
 
 if __name__ == "__main__":
