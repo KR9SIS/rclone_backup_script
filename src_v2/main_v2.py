@@ -4,8 +4,10 @@ rclone backup script for backing up local directory files
 
 from contextlib import closing
 from datetime import datetime
+from logging import ERROR, basicConfig, error
 from pathlib import Path
 from sqlite3 import connect
+from traceback import format_exc
 
 from db_ops import get_count_or_setup_db, write_db_mod_files
 from dir_ops import get_modified_files
@@ -93,9 +95,14 @@ class RCloneBackupScript:
 if __name__ == "__main__":
     try:
         RCloneBackupScript()
-    except Exception as e:
+    except Exception:
         # Logging any unknown exceptions which might happen.
         # Because this program will be called automatically and without anyone watching stdout.
         error_log = Path(__file__).resolve().parent / "error.log"
-        with open(error_log, "a", encoding="utf-8") as err_file:
-            print(e, file=err_file)
+        basicConfig(
+            filename=error_log,
+            filemode="a",
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            level=ERROR,
+        )
+        error(format_exc())
