@@ -25,7 +25,7 @@ class RCloneBackupScript:
     """
 
     def __init__(self) -> None:
-        self.stdout = True
+        self.stdout = False
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
         self.mod_times: dict[Path, str] = {}
