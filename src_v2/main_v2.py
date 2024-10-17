@@ -71,7 +71,8 @@ class RCloneBackupScript:
         """
         now = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-        with open("run.log", "a", encoding="utf-8") as log_file:
+        run_log = Path(__file__).resolve().parent / "run.log"
+        with open(run_log, "a", encoding="utf-8") as log_file:
             if not start_time:
                 msg = f"# Program started at {now} #"
                 print(f"{"#"*len(msg)}\n{msg}", file=log_file)
@@ -95,5 +96,6 @@ if __name__ == "__main__":
     except Exception as e:
         # Logging any unknown exceptions which might happen.
         # Because this program will be called automatically and without anyone watching stdout.
-        with open("error.log", "a", encoding="utf-8") as err_file:
+        error_log = Path(__file__).resolve().parent / "error.log"
+        with open(error_log, "a", encoding="utf-8") as err_file:
             print(e, file=err_file)
