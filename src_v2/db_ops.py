@@ -80,12 +80,17 @@ def write_db_mod_files(self):
     """
     Writes mod files to database to keep track of which files were modified
     """
-    now = datetime.now().strftime("%Y-%m-%d")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
     file_data = [(now, str(file_path), 0) for file_path in self.mod_times]
+
+    if self.stdout:
+        print("\nModified files:")
+        _ = [print(file_path) for file_path in self.mod_times]
+        print()
 
     self.db_conn.execute(
         """
-        INSERT INTO Dates (date) VALUES (?)
+        INSERT OR IGNORE INTO Dates (date) VALUES (?)
         """,
         (now,),
     )
@@ -98,11 +103,6 @@ def write_db_mod_files(self):
     )
 
     self.db_conn.commit()
-
-    if self.stdout:
-        print("\nModified files:")
-        _ = [print(file_path) for file_path in self.mod_times]
-        print()
 
 
 def update_db_mod_file(self, file_path: str, modification_time: str):
