@@ -9,7 +9,7 @@ from subprocess import CalledProcessError, TimeoutExpired, run
 from textwrap import dedent
 
 
-def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
+def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
     """
     Function to get all files within the current working directory
     and their modification time and return a str containing that
@@ -67,7 +67,7 @@ def get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
     return ret
 
 
-def create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
+def __create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
     """
     Gets the files from the DB and turns them into a dictionary
     where the file paths are keys and mod times are values
@@ -84,7 +84,7 @@ def create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
     return {Path(db_f_tup[0]): db_f_tup[1] for db_f_tup in db_files}
 
 
-def add_or_del_from_db(self, files, db_files):
+def __add_or_del_from_db(self, files, db_files):
     """
     Clean up difference between local directory and database
     """
@@ -155,7 +155,7 @@ def add_or_del_from_db(self, files, db_files):
     self.db_conn.commit()
 
 
-def check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
+def __check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
     """
     Check the given files and see if they have been
     modified or not if they have been then either check its
@@ -181,16 +181,16 @@ def get_modified_files(self, cwd: Path):
             print(f"{percent}%", end=" ")
         print(f"In {cwd}")
 
-    files = get_files_in_cwd(self, cwd)
+    files = __get_files_in_cwd(self, cwd)
     if not files:
         return self.mod_times
 
     files = {Path(f_tup[0]): f_tup[1] for f_tup in files}
-    db_files = create_db_files_dict(self, cwd)
+    db_files = __create_db_files_dict(self, cwd)
 
     if len(files) != len(db_files) or files != db_files:
-        add_or_del_from_db(self, files, db_files)
+        __add_or_del_from_db(self, files, db_files)
 
-    check_if_modified(self, files, db_files)
+    __check_if_modified(self, files, db_files)
 
     return self.mod_times
