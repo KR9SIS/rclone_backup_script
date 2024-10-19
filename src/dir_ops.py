@@ -31,7 +31,7 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
             stat_out = stat_out.stdout.decode("utf-8")
 
         except CalledProcessError as e:
-            with open(self.error_log, "a", encoding="utf-8") as log_file:
+            with open(self.run_log, "a", encoding="utf-8") as log_file:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
                     dedent(
@@ -46,7 +46,7 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
                 stat_out = ""
 
         except TimeoutExpired as e:
-            with open(self.error_log, "a", encoding="utf-8") as log_file:
+            with open(self.run_log, "a", encoding="utf-8") as log_file:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
                     dedent(
