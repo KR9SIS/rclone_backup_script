@@ -80,8 +80,8 @@ def write_db_mod_files(self):
     """
     Writes mod files to database to keep track of which files were modified
     """
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    file_data = [(now, str(file_path), 0) for file_path in self.mod_times]
+    self.now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    file_data = [(self.now, str(file_path), 0) for file_path in self.mod_times]
 
     if self.stdout:
         print("\nModified files:")
@@ -92,7 +92,7 @@ def write_db_mod_files(self):
         """
         INSERT OR IGNORE INTO Dates (date) VALUES (?)
         """,
-        (now,),
+        (self.now,),
     )
 
     self.db_conn.executemany(
@@ -109,14 +109,13 @@ def update_db_mod_file(self, file_path: str, modification_time: str):
     """
     Function which updates the sync status and modification_time for a specific file path
     """
-    now = datetime.now().strftime("%Y-%m-%d")
     self.db_conn.execute(
         """
         UPDATE Log
         SET synced = ?
         WHERE date = ? AND file_path = ?
         """,
-        (1, now, file_path),
+        (1, self.now, file_path),
     )
 
     self.db_conn.execute(
