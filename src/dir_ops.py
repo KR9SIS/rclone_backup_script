@@ -22,7 +22,8 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
             or file.is_symlink()
             or any(excluded in str(file) for excluded in self.excluded_paths)
         ):
-            continue  # Get rid of all dotfiles, symlinks and explicitly excluded files defined in main.py
+            # Get rid of all dotfiles, symlinks and explicitly excluded files defined in main.py
+            continue
 
         stat_cmd = ["stat", "-c", "%n %y", str(file)]
         try:
