@@ -29,7 +29,7 @@ class RCloneBackupScript:
 
     def __init__(self) -> None:
 
-        self.stdout = True
+        self.stdout = False
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
         self.mod_times: dict[Path, str] = {}
@@ -79,7 +79,7 @@ class RCloneBackupScript:
         with open(run_log, "a", encoding="utf-8") as log_file:
             if not start_time:
                 msg = f"# Start {now.strftime("%Y-%m-%d %H:%M")} #"
-                print(f"{"#"*len(msg)}\n{msg}", file=log_file)
+                print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
                 return now
 
             h, m, s = self.__get_total_time(start_time, now)
@@ -87,7 +87,7 @@ class RCloneBackupScript:
             dur = f"# Time  {h} h. {m} m. {s} s."
 
             print(
-                f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}\n\n",
+                f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}\n",
                 file=log_file,
             )
 
@@ -100,7 +100,7 @@ if __name__ == "__main__":
     except Exception:
         # Logging any unknown exceptions which might happen.
         # Because this program will be called automatically and without anyone watching stdout.
-        error_log = Path(__file__).resolve().parent / "error.log"
+        error_log = Path(__file__).resolve().parent / "run.log"
         basicConfig(
             filename=error_log,
             filemode="a",
