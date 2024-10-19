@@ -29,6 +29,9 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
         try:
             stat_out = run(stat_cmd, check=True, timeout=10, capture_output=True)
             stat_out = stat_out.stdout.decode("utf-8")
+            mod_time = stat_out[-36:-7]
+            filename = stat_out[:-37]
+            ret.append((filename, mod_time))
 
         except CalledProcessError as e:
             with open(self.run_log, "a", encoding="utf-8") as log_file:
@@ -43,7 +46,6 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
                     ),
                     file=log_file,
                 )
-                stat_out = ""
 
         except TimeoutExpired as e:
             with open(self.run_log, "a", encoding="utf-8") as log_file:
@@ -58,12 +60,6 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
                     ),
                     file=log_file,
                 )
-                stat_out = ""
-
-        if stat_out:
-            mod_time = stat_out[-36:-7]
-            filename = stat_out[:-37]
-            ret.append((filename, mod_time))
 
     return ret
 
