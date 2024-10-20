@@ -29,41 +29,37 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
         try:
             stat_out = run(stat_cmd, check=True, timeout=10, capture_output=True)
             stat_out = stat_out.stdout.decode("utf-8")
-
-        except CalledProcessError as e:
-            with open(self.error_log, "a", encoding="utf-8") as log_file:
-                now = datetime.now().strftime("%Y-%m-%d %H:%M")
-                print(
-                    dedent(
-                        f"""
-                        \n{now}\nError occured with stat command
-                        \nCurrent working Directory:\n{cwd}
-                        \nCommand:\n{stat_cmd}\nError:\n{e}
-                        """
-                    ),
-                    file=log_file,
-                )
-                stat_out = ""
-
-        except TimeoutExpired as e:
-            with open(self.error_log, "a", encoding="utf-8") as log_file:
-                now = datetime.now().strftime("%Y-%m-%d %H:%M")
-                print(
-                    dedent(
-                        f"""
-                        \n{now}\nError occured with stat command
-                        \nCurrent working Directory:\n{cwd}
-                        \nCommand:\n{stat_cmd}\nError:\n{e}
-                        """
-                    ),
-                    file=log_file,
-                )
-                stat_out = ""
-
-        if stat_out:
             mod_time = stat_out[-36:-7]
             filename = stat_out[:-37]
             ret.append((filename, mod_time))
+
+        except CalledProcessError as e:
+            with open(self.run_log, "a", encoding="utf-8") as log_file:
+                now = datetime.now().strftime("%Y-%m-%d %H:%M")
+                print(
+                    dedent(
+                        f"""
+                        \n{now}\nError occured with stat command
+                        \nCurrent working Directory:\n{cwd}
+                        \nCommand:\n{stat_cmd}\nError:\n{e}
+                        """
+                    ),
+                    file=log_file,
+                )
+
+        except TimeoutExpired as e:
+            with open(self.run_log, "a", encoding="utf-8") as log_file:
+                now = datetime.now().strftime("%Y-%m-%d %H:%M")
+                print(
+                    dedent(
+                        f"""
+                        \n{now}\nError occured with stat command
+                        \nCurrent working Directory:\n{cwd}
+                        \nCommand:\n{stat_cmd}\nError:\n{e}
+                        """
+                    ),
+                    file=log_file,
+                )
 
     return ret
 

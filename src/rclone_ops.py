@@ -21,7 +21,7 @@ def rclone_check_connection(self, DESTINATION_PATH) -> bool:
         return True
 
     except (CalledProcessError, TimeoutExpired):
-        with open(self.error_log, "a", encoding="utf-8") as log_file:
+        with open(self.run_log, "a", encoding="utf-8") as log_file:
             now = datetime.now().strftime("%Y-%m-%d %H:%M")
             print(
                 f"\n{now}\nConnection could not be established to remote, exiting run\n",
@@ -61,7 +61,7 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
             update_db_mod_file(self, str(file_path), self.mod_times[file_path])
 
         except CalledProcessError as e:
-            with open(self.error_log, "a", encoding="utf-8") as log_file:
+            with open(self.run_log, "a", encoding="utf-8") as log_file:
                 print(
                     f"""
                     Error occured with syncing file\n
@@ -71,7 +71,7 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
                     file=log_file,
                 )
         except TimeoutExpired as e:
-            with open(self.error_log, "a", encoding="utf-8") as log_file:
+            with open(self.run_log, "a", encoding="utf-8") as log_file:
                 print(
                     f"""
                     Error occured with syncing file\n
