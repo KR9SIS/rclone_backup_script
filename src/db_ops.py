@@ -79,6 +79,7 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
 def write_db_mod_files(self):
     """
     Writes mod files to database to keep track of which files were modified
+    and writes the number of modified files to the run log
     """
     self.now = datetime.now().strftime("%Y-%m-%d %H:%M")
     file_data = [(self.now, str(file_path), 0) for file_path in self.mod_times]
@@ -104,6 +105,13 @@ def write_db_mod_files(self):
 
     self.db_conn.commit()
 
+    with open(self.run_log, "a", encoding="utf-8") as log_file:
+        mod_nums = f"# Files: {len(self.mod_times)} "
+        if len(mod_nums) < 13:
+            str_diff = 13 - len(mod_nums)
+            mod_nums += " " * str_diff
+        print(mod_nums, file=log_file, end="")
+
 
 def update_db_mod_file(self, file_path: str, modification_time: str):
     """
@@ -127,3 +135,19 @@ def update_db_mod_file(self, file_path: str, modification_time: str):
         (modification_time, file_path),
     )
     self.db_conn.commit()
+
+
+def get_num_synced_files(self) -> int:
+    """
+    Counts the number of files which synced this run and returns it
+    :return: The number of files which successfully synced this time around
+    """
+    ret = self.db_conn.execute(
+        """
+        SELECT COUNT(file_path) FROM Log
+        WHERE date = ? AND synced = 1
+        """,
+        (self.now,),
+    ).fetchone()[0]
+
+    return ret if ret else 0
