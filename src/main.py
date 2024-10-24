@@ -56,7 +56,7 @@ class RCloneBackupScript:
             write_db_mod_files(self)
             rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
 
-        _ = self.write_start_end_times(start_time)
+            _ = self.write_start_end_times(start_time)
 
     def __get_total_time(self, start_time, end_time):
         """
@@ -81,7 +81,7 @@ class RCloneBackupScript:
                 print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
                 return now
 
-            synced = f"Synced: {get_num_synced_files(self)} "
+            synced = f"Synced {get_num_synced_files(self)} "
             if len(synced) < 12:
                 str_diff = 12 - len(synced)
                 synced += " " * str_diff

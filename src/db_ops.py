@@ -106,7 +106,7 @@ def write_db_mod_files(self):
     self.db_conn.commit()
 
     with open(self.run_log, "a", encoding="utf-8") as log_file:
-        mod_nums = f"# Files: {len(self.mod_times)} "
+        mod_nums = f"# Files {len(self.mod_times)} "
         if len(mod_nums) < 13:
             str_diff = 13 - len(mod_nums)
             mod_nums += " " * str_diff
