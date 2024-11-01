@@ -9,7 +9,7 @@ from pathlib import Path
 from sqlite3 import connect
 from traceback import format_exc
 
-from db_ops import get_count_or_setup_db, get_num_synced_files, write_db_mod_files
+from db_ops import get_count_or_setup_db, write_db_mod_files
 from dir_ops import get_modified_files
 from rclone_ops import rclone_check_connection, rclone_sync
 
@@ -82,19 +82,12 @@ class RCloneBackupScript:
                 print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
                 return now
 
-            synced = f"Synced {get_num_synced_files(self)} "
-            if len(synced) < 12:
-                str_diff = 12 - len(synced)
-                synced += " " * str_diff
-            synced += "#"
-            print(synced, file=log_file)
-
             h, m, s = self.__get_total_time(start_time, now)
             msg = f"# End   {now.strftime("%Y-%m-%d %H:%M")} #"
             dur = f"# Time  {h} h. {m} m. {s} s."
 
             print(
-                f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}\n",
+                f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}",
                 file=log_file,
             )
 

@@ -5,8 +5,9 @@ Functions which interact with rclone
 from datetime import datetime
 from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, run
+from textwrap import dedent
 
-from db_ops import update_db_mod_file
+from db_ops import get_num_synced_files, update_db_mod_file
 
 
 def rclone_check_connection(self, DESTINATION_PATH) -> bool:
@@ -43,6 +44,7 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         "--protondrive-replace-existing-draft=true",
     ]
 
+    sync_fails: int = 0
     file_num = 0
     for file_path in self.mod_times:
         rel_file_path = file_path.relative_to(SOURCE_PATH)
@@ -59,23 +61,23 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
             run(cmd_with_file, check=True, timeout=600)
             update_db_mod_file(self, str(file_path), self.mod_times[file_path])
 
-        except CalledProcessError as e:
-            with open(self.run_log, "a", encoding="utf-8") as log_file:
-                print(
-                    f"""
-                    Error occured with syncing file\n
-                    {rel_file_path}\nError:\n{e}\n
-                    File mod time will not be updated this run
-                    """,
-                    file=log_file,
-                )
-        except TimeoutExpired as e:
-            with open(self.run_log, "a", encoding="utf-8") as log_file:
-                print(
-                    f"""
-                    Error occured with syncing file\n
-                    {rel_file_path}\nError:\n{e}\n
-                    File mod time will not be updated this run
-                    """,
-                    file=log_file,
-                )
+        except (CalledProcessError, TimeoutExpired):
+            sync_fails += 1
+
+    if sync_fails:
+        fails = f"Fails {sync_fails}"
+        if len(fails) < 12:
+            str_diff = 12 - len(fails)
+            fails += " " * str_diff
+        fails += "#"
+        with open(self.run_log, "a", encoding="utf-8") as log_file:
+            print(dedent(fails), file=log_file)
+
+    else:
+        with open(self.run_log, "a", encoding="utf-8") as log_file:
+            synced = f"Synced {get_num_synced_files(self)} "
+            if len(synced) < 12:
+                str_diff = 12 - len(synced)
+                synced += " " * str_diff
+            synced += "#"
+            print(dedent(synced), file=log_file)
