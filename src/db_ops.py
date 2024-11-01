@@ -71,6 +71,13 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
             """
         )
 
+        self.db_conn.execute(
+            """
+            CREATE INDEX idx_log_file_path_synced_date
+            ON Log(file_path, synced, date);
+            """
+        )
+
         self.db_conn.commit()
 
         return True
