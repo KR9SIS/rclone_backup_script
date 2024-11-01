@@ -22,9 +22,8 @@ def rclone_check_connection(self, DESTINATION_PATH) -> bool:
 
     except (CalledProcessError, TimeoutExpired):
         with open(self.run_log, "a", encoding="utf-8") as log_file:
-            now = datetime.now().strftime("%Y-%m-%d %H:%M")
             print(
-                f"\n{now}\nConnection could not be established to remote, exiting run\n",
+                dedent("# Remote Connect Failed  #\n# Exiting Run            #"),
                 file=log_file,
             )
         return False

@@ -45,6 +45,7 @@ class RCloneBackupScript:
 
         start_time = self.write_start_end_times()
         if not rclone_check_connection(self, REMOTE_DIRECTORY):
+            _ = self.write_start_end_times(start_time)
             return
 
         with closing(connect(self.db_file)) as self.db_conn:
