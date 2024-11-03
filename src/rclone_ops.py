@@ -11,7 +11,11 @@ from db_ops import get_num_synced_files, update_db_mod_file
 
 
 def rclone_check_connection(self, DESTINATION_PATH) -> bool:
-    """Function to query the rclone connection and check if it's active"""
+    """
+    Function to query the rclone connection and check if it's active
+    If this function fails multiple times, then try running the command
+    manually and if that fails, reset the authentication of 'rclone config'
+    """
     try:
         _ = run(
             ["rclone", "lsd", DESTINATION_PATH],
