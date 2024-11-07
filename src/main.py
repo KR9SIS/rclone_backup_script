@@ -104,7 +104,7 @@ if __name__ == "__main__":
         basicConfig(
             filename=run_log,
             filemode="a",
-            format="%(asctime)s - %(levelname)s - %(message)s",
+            format="\n%(asctime)s - %(levelname)s - %(message)s\n",
             level=ERROR,
         )
         error(format_exc())
