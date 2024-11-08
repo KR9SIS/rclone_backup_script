@@ -2,8 +2,6 @@
 Functions which interact with rclone
 """
 
-from datetime import datetime
-from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, run
 from textwrap import dedent
 
@@ -55,11 +53,6 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         cmd_with_file = []
         cmd_with_file.extend(command)
         cmd_with_file.extend(["--include", str(rel_file_path)])
-        if self.stdout:
-            file_num += 1
-            percent = round((file_num / len(self.mod_times)) * 100)
-            print(f"Total synced: {percent}%\n")
-            print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
 
         try:
             run(cmd_with_file, check=True, timeout=600)
@@ -67,6 +60,13 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
 
         except (CalledProcessError, TimeoutExpired):
             sync_fails += 1
+            print("\nFAILED ", end="")
+
+        if self.stdout:
+            file_num += 1
+            percent = round((file_num / len(self.mod_times)) * 100)
+            print(f"Syncing file #{file_num}:\n{rel_file_path}\n")
+            print(f"Total synced: {percent}%\n")
 
     if sync_fails:
         fails = f"Fails {sync_fails}"
