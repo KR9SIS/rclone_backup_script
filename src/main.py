@@ -52,7 +52,14 @@ class RCloneBackupScript:
             setup = get_count_or_setup_db(self, LOCAL_DIRECTORY)
             self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
             if setup is True:
-                return  # Only sync if database existed
+                # TODO: Move functionality to db_ops
+                with open(self.run_log, "a", encoding="utf-8") as log_file:
+                    print(
+                        "# Database created        #\n# Future changes will be synced #\n##########################",
+                        file=log_file,
+                    )
+                self.write_start_end_times(start_time)
+                return  # Only sync if database existed to get around syncing thousands of files
 
             write_db_mod_files(self)
             rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
