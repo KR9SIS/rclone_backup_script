@@ -2,13 +2,14 @@
 Functions which interact with rclone
 """
 
+from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, run
 from textwrap import dedent
 
 from db_ops import get_num_synced_files, update_db_mod_file
 
 
-def rclone_check_connection(self, DESTINATION_PATH) -> bool:
+def check_connection(self, DESTINATION_PATH) -> bool:
     """
     Function to query the rclone connection and check if it's active
     If this function fails multiple times, then try running the command
@@ -32,7 +33,28 @@ def rclone_check_connection(self, DESTINATION_PATH) -> bool:
         return False
 
 
-def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
+def check_log_n_db_eq(self, dest: str):
+    """
+    Check if RCloneBackupScript.db and run.log are equal between source and remote
+    """
+    cmd = [
+        "rclone",
+        "check",
+        str(Path.cwd()),
+        dest,
+        "--include",
+        str(self.run_log.name),
+        "--include",
+        str(self.db_file.name),
+    ]
+    try:
+        run(cmd, check=True, timeout=180)
+        return True
+    except (CalledProcessError, TimeoutExpired):
+        return False
+
+
+def sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
     """
     Sync modified files to Proton Drive
     """
@@ -49,7 +71,7 @@ def rclone_sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
     sync_fails: int = 0
     file_num = 0
     for file_path in self.mod_times:
-        rel_file_path = file_path.relative_to(SOURCE_PATH)
+        rel_file_path: Path = file_path.relative_to(SOURCE_PATH)
         cmd_with_file = []
         cmd_with_file.extend(command)
         cmd_with_file.extend(["--include", str(rel_file_path)])

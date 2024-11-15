@@ -11,7 +11,7 @@ from traceback import format_exc
 
 from db_ops import get_count_or_setup_db, write_db_mod_files
 from dir_ops import get_modified_files
-from rclone_ops import rclone_check_connection, rclone_sync
+from rclone_ops import check_connection, check_log_n_db_eq, sync
 
 
 class RCloneBackupScript:
@@ -44,7 +44,7 @@ class RCloneBackupScript:
         self.db_file = file_dir / "RCloneBackupScript.db"
 
         start_time = self.write_start_end_times()
-        if not rclone_check_connection(self, REMOTE_DIRECTORY):
+        if not check_connection(self, REMOTE_DIRECTORY):
             _ = self.write_start_end_times(start_time)
             return
 
@@ -55,14 +55,20 @@ class RCloneBackupScript:
                 # TODO: Move functionality to db_ops
                 with open(self.run_log, "a", encoding="utf-8") as log_file:
                     print(
-                        "# Database created        #\n# Future changes will be synced #\n##########################",
+                        f"# Database created{''*8}#\n# Future changes will be synced #\n{'#'*26}",
                         file=log_file,
                     )
                 self.write_start_end_times(start_time)
                 return  # Only sync if database existed to get around syncing thousands of files
 
+            if len(self.mod_times) == 2:
+                dest = REMOTE_DIRECTORY + str(Path.cwd().relative_to(LOCAL_DIRECTORY))
+                if check_log_n_db_eq(self, dest):
+                    self.write_start_end_times(start_time)
+                    return  # Only sync files if they are different
+
             write_db_mod_files(self)
-            rclone_sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
+            sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
 
             _ = self.write_start_end_times(start_time)
 
