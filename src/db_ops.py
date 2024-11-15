@@ -79,6 +79,11 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
         )
 
         self.db_conn.commit()
+        with open(self.run_log, "a", encoding="utf-8") as log_file:
+            print(
+                f"# Database created{''*8}#\n# Future changes will be synced #\n{'#'*26}",
+                file=log_file,
+            )
 
         return True
 
