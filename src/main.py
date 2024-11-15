@@ -32,7 +32,7 @@ class RCloneBackupScript:
         self.stdout = False
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
-        self.mod_times: dict[Path, str] = {}
+        self.mod_times: list[tuple[Path, str]] = []
         self.file_count = -99999
         self.cur_file = 0
         self.now: str = ""

@@ -94,11 +94,11 @@ def write_db_mod_files(self):
     and writes the number of modified files to the run log
     """
     self.now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    file_data = [(self.now, str(file_path), 0) for file_path in self.mod_times]
+    file_data = [(self.now, str(file_path[0]), 0) for file_path in self.mod_times]
 
     if self.stdout:
         print("\nModified files:")
-        _ = [print(file_path) for file_path in self.mod_times]
+        _ = [print(file_path[0]) for file_path in self.mod_times]
         print()
 
     self.db_conn.execute(

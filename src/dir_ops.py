@@ -33,7 +33,7 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
             filename = stat_out[:-37]
             ret.append((filename, mod_time))
 
-        except CalledProcessError as e:
+        except (CalledProcessError, TimeoutExpired) as e:
             with open(self.run_log, "a", encoding="utf-8") as log_file:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
@@ -46,28 +46,13 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
                     ),
                     file=log_file,
                 )
-
-        except TimeoutExpired as e:
-            with open(self.run_log, "a", encoding="utf-8") as log_file:
-                now = datetime.now().strftime("%Y-%m-%d %H:%M")
-                print(
-                    dedent(
-                        f"""
-                        \n{now}\nError occured with stat command
-                        \nCurrent working Directory:\n{cwd}
-                        \nCommand:\n{stat_cmd}\nError:\n{e}
-                        """
-                    ),
-                    file=log_file,
-                )
-
     return ret
 
 
-def __create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
+def __create_db_files_list(self, cwd: Path) -> list[tuple[Path, str]]:
     """
-    Gets the files from the DB and turns them into a dictionary
-    where the file paths are keys and mod times are values
+    Gets the files from the DB and turns them into a
+    list of tuples containing file paths and mod times
     """
     db_files = self.db_conn.execute(
         """
@@ -78,7 +63,7 @@ def __create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
         (str(cwd),),
     ).fetchall()
 
-    return {Path(db_f_tup[0]): db_f_tup[1] for db_f_tup in db_files}
+    return [(Path(db_f_tup[0]), db_f_tup[1]) for db_f_tup in db_files]
 
 
 def __add_or_del_from_db(
@@ -156,19 +141,24 @@ def __add_or_del_from_db(
     self.db_conn.commit()
 
 
-def __check_if_modified(self, files: dict[Path, str], db_files: dict[Path, str]):
+def __check_if_modified(
+    self, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
+):
     """
     Check the given files and see if they have been
     modified or not if they have been then either check its
     subdirectories or log the file as modified
     """
 
-    for file, modification_time in files.items():
+    for file, modification_time in files:
         if file.is_dir():
             get_modified_files(self, file)
+        if file.is_file():
+            try:
+                _ = db_files.index((file, modification_time))
+            except ValueError:
+                self.mod_times.append((file, modification_time))
 
-        if file.is_file() and modification_time != db_files[file]:
-            self.mod_times[file] = modification_time
         self.cur_file += 1
 
 
@@ -186,8 +176,8 @@ def get_modified_files(self, cwd: Path):
     if not files:
         return self.mod_times
 
-    files = {Path(f_tup[0]): f_tup[1] for f_tup in files}
-    db_files = __create_db_files_dict(self, cwd)
+    files = [(Path(f_tup[0]), f_tup[1]) for f_tup in files]
+    db_files = __create_db_files_list(self, cwd)
 
     if len(files) != len(db_files) or files != db_files:
         __add_or_del_from_db(self, files, db_files)

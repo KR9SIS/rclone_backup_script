@@ -70,7 +70,7 @@ def sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
 
     sync_fails: int = 0
     file_num = 0
-    for file_path in self.mod_times:
+    for file_path, mod_time in self.mod_times:
         rel_file_path: Path = file_path.relative_to(SOURCE_PATH)
         cmd_with_file = []
         cmd_with_file.extend(command)
@@ -78,7 +78,7 @@ def sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
 
         try:
             run(cmd_with_file, check=True, timeout=600)
-            update_db_mod_file(self, str(file_path), self.mod_times[file_path])
+            update_db_mod_file(self, str(file_path), mod_time)
 
         except (CalledProcessError, TimeoutExpired):
             sync_fails += 1
