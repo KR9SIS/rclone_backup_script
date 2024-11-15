@@ -81,18 +81,23 @@ def __create_db_files_dict(self, cwd: Path) -> dict[Path, str]:
     return {Path(db_f_tup[0]): db_f_tup[1] for db_f_tup in db_files}
 
 
-def __add_or_del_from_db(self, files, db_files):
+def __add_or_del_from_db(
+    self, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
+):
     """
     Clean up difference between local directory and database
     """
-    local_files: set[Path] = set(files)
-    cloud_files: set[Path] = set(db_files)
+    local_files: set[Path] = {Path(file_tup[0]) for file_tup in files}
+    cloud_files: set[Path] = {Path(file_tup[0]) for file_tup in files}
 
     diff = local_files.symmetric_difference(cloud_files)
 
     for file in diff:
         if file not in cloud_files:  # File was created locally
             parent_dir = file.parent
+            mod_time = next(
+                (file_tup[1] for file_tup in files if file_tup[0] == file), None
+            )
             if file.is_dir():
                 self.db_conn.execute(
                     """
@@ -106,7 +111,7 @@ def __add_or_del_from_db(self, files, db_files):
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
                         """,
-                    (str(parent_dir), str(file), files[file]),
+                    (str(parent_dir), str(file), mod_time),
                 )
             else:
                 self.db_conn.execute(
@@ -114,13 +119,15 @@ def __add_or_del_from_db(self, files, db_files):
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
                         """,
-                    (str(parent_dir), str(file), files[file]),
+                    (str(parent_dir), str(file), mod_time),
                 )
-            self.mod_times[file] = files[file]
-            # Make sure mod time is different so the file will be synced
-            db_files[file] = "0000-00-00 00:00"
+            self.mod_times.append(file, mod_time)
 
         elif file not in local_files:  # File was deleted locally
+            mod_time = next(
+                (file_tup[1] for file_tup in db_files if file_tup[0] == file), None
+            )
+
             self.db_conn.execute(
                 """
                     DELETE FROM Times 
@@ -144,10 +151,7 @@ def __add_or_del_from_db(self, files, db_files):
                 (str(file),),
             )
 
-            self.mod_times[file] = db_files[file]
-
-            # Make sure mod time is different so the file will be synced
-            files[file] = "0000-00-00 00:00"
+            self.mod_times.append(file, mod_time)
 
     self.db_conn.commit()
 
