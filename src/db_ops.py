@@ -88,12 +88,24 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
         return True
 
 
+def log_start_end_times_db(self, time: str, msg: str):
+    """
+    Logs the start and end times of the program when program runs
+    """
+    self.db_conn.execute(
+        """
+        INSERT INTO Log (date, file_path, synced) VALUES (?, ?, 1)
+        """,
+        (time, msg),
+    )
+    self.db_conn.commit()
+
+
 def write_db_mod_files(self):
     """
     Writes mod files to database to keep track of which files were modified
     and writes the number of modified files to the run log
     """
-    self.now = datetime.now().strftime("%Y-%m-%d %H:%M")
     file_data = [(self.now, str(file_path[0]), 0) for file_path in self.mod_times]
 
     if self.stdout:
@@ -157,7 +169,7 @@ def get_num_synced_files(self) -> int:
     ret = self.db_conn.execute(
         """
         SELECT COUNT(file_path) FROM Log
-        WHERE date = ? AND synced = 1
+        WHERE date = ? AND synced = 1 AND file_path != 'Start Time'
         """,
         (self.now,),
     ).fetchone()[0]

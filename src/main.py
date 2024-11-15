@@ -9,7 +9,7 @@ from pathlib import Path
 from sqlite3 import connect
 from traceback import format_exc
 
-from db_ops import get_count_or_setup_db, write_db_mod_files
+from db_ops import get_count_or_setup_db, log_start_end_times_db, write_db_mod_files
 from dir_ops import get_modified_files
 from rclone_ops import check_connection, check_log_n_db_eq, sync
 
@@ -29,13 +29,12 @@ class RCloneBackupScript:
 
     def __init__(self) -> None:
 
-        self.stdout = False
+        self.stdout = True
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
         self.mod_times: list[tuple[Path, str]] = []
         self.file_count = -99999
         self.cur_file = 0
-        self.now: str = ""
         self.excluded_paths: set[str] = {"__pycache__"}
         # Dotfiles and synlinks are also excluded in get_files_in_cwd()
 
@@ -44,11 +43,13 @@ class RCloneBackupScript:
         self.db_file = file_dir / "RCloneBackupScript.db"
 
         start_time = self.write_start_end_times()
+        self.now: str = start_time.strftime("%Y-%m-%d %H:%M")
         if not check_connection(self, REMOTE_DIRECTORY):
             _ = self.write_start_end_times(start_time)
             return
 
         with closing(connect(self.db_file)) as self.db_conn:
+            log_start_end_times_db(self, self.now, "Start Time")
             setup = get_count_or_setup_db(self, LOCAL_DIRECTORY)
             self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
             if setup is True:
@@ -93,12 +94,18 @@ class RCloneBackupScript:
             msg = f"# End   {now.strftime("%Y-%m-%d %H:%M")} #"
             dur = f"# Time  {h} h. {m} m. {s} s."
 
+            log_start_end_times_db(
+                self,
+                now.strftime("%Y-%m-%d %H:%M"),
+                f"End Time, Duration {h} h. {m} m. {s} s.",
+            )
+
             print(
                 f"{msg}\n{dur}{" "*(len(msg)-len(dur)-1)}#\n{"#"*len(msg)}",
                 file=log_file,
             )
 
-            return ""
+            return now
 
 
 if __name__ == "__main__":
@@ -111,7 +118,7 @@ if __name__ == "__main__":
         basicConfig(
             filename=run_log,
             filemode="a",
-            format="\n%(asctime)s - %(levelname)s - %(message)s\n",
+            format="\n%(asctime)s - %(levelname)s - %(message)s",
             level=ERROR,
         )
         error(format_exc())
