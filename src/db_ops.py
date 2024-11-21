@@ -98,7 +98,6 @@ def log_start_end_times_db(self, time: str, msg: str):
         """,
         (time, msg),
     )
-    self.db_conn.commit()
 
 
 def write_db_mod_files(self):

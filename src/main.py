@@ -67,6 +67,8 @@ class RCloneBackupScript:
 
             _ = self.write_start_end_times(start_time)
 
+            self.db_conn.commit()
+
     def __get_total_time(self, start_time, end_time):
         """
         Calculates the difference in hours, minutes, and seconds between start_time and end_time
