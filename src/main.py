@@ -50,9 +50,10 @@ class RCloneBackupScript:
 
         with closing(connect(self.db_file)) as self.db_conn:
             log_start_end_times_db(self, self.now, "Start Time")
-            setup = get_count_or_setup_db(self, LOCAL_DIRECTORY)
+            new_db = get_count_or_setup_db(self, LOCAL_DIRECTORY)
             self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
-            if setup is True:
+
+            if new_db is True:
                 self.write_start_end_times(start_time)
                 return  # Only sync if database existed to get around syncing thousands of files
 
