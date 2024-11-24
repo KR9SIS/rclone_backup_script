@@ -29,13 +29,13 @@ class RCloneBackupScript:
 
     def __init__(self) -> None:
 
-        self.stdout = True
+        self.stdout = False
         LOCAL_DIRECTORY = "/home/kr9sis/PDrive"
         REMOTE_DIRECTORY = "PDrive:"
         self.mod_times: list[tuple[Path, str]] = []
         self.file_count = -99999
         self.cur_file = 0
-        self.excluded_paths: set[str] = {"__pycache__"}
+        self.excluded_paths: set[str] = {"__pycache__", "node_modules"}
         # Dotfiles and synlinks are also excluded in get_files_in_cwd()
 
         file_dir = Path(__file__).resolve().parent
