@@ -73,7 +73,7 @@ def __add_or_del_from_db(
     Clean up difference between local directory and database
     """
     local_files: set[Path] = {Path(file_tup[0]) for file_tup in files}
-    cloud_files: set[Path] = {Path(file_tup[0]) for file_tup in files}
+    cloud_files: set[Path] = {Path(file_tup[0]) for file_tup in db_files}
 
     diff = local_files.symmetric_difference(cloud_files)
 
@@ -106,7 +106,6 @@ def __add_or_del_from_db(
                         """,
                     (str(parent_dir), str(file), mod_time),
                 )
-            self.mod_times.append(file, mod_time)
 
         elif file not in local_files:  # File was deleted locally
             mod_time = next(
@@ -136,10 +135,6 @@ def __add_or_del_from_db(
                 (str(file),),
             )
 
-            self.mod_times.append(file, mod_time)
-
-    self.db_conn.commit()
-
 
 def __check_if_modified(
     self, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
@@ -155,6 +150,7 @@ def __check_if_modified(
             get_modified_files(self, file)
         if file.is_file():
             try:
+                # Check if file has been modified since it was last synced
                 _ = db_files.index((file, modification_time))
             except ValueError:
                 self.mod_times.append((file, modification_time))
