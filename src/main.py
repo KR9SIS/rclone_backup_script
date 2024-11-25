@@ -6,7 +6,7 @@ from contextlib import closing
 from datetime import datetime
 from logging import ERROR, basicConfig, error
 from pathlib import Path
-from sqlite3 import connect
+from sqlite3 import OperationalError, connect
 from traceback import format_exc
 
 from db_ops import get_count_or_setup_db, log_start_end_times_db, write_db_mod_files
@@ -49,7 +49,12 @@ class RCloneBackupScript:
             return
 
         with closing(connect(self.db_file)) as self.db_conn:
-            log_start_end_times_db(self, self.now, "Start Time")
+            try:
+                log_start_end_times_db(self, self.now, "Start Time")
+            except OperationalError as exc:
+                if exc.args[0] != "no such table: Log":
+                    raise exc
+
             new_db = get_count_or_setup_db(self, LOCAL_DIRECTORY)
             self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
 

@@ -107,6 +107,8 @@ def __add_or_del_from_db(
                     (str(parent_dir), str(file), mod_time),
                 )
 
+            self.mod_times.append((file, mod_time))
+
         elif file not in local_files:  # File was deleted locally
             mod_time = next(
                 (file_tup[1] for file_tup in db_files if file_tup[0] == file), None
@@ -135,6 +137,8 @@ def __add_or_del_from_db(
                 (str(file),),
             )
 
+            self.mod_times.append((file, mod_time))
+
 
 def __check_if_modified(
     self, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
@@ -145,15 +149,17 @@ def __check_if_modified(
     subdirectories or log the file as modified
     """
 
-    for file, modification_time in files:
+    for file_data in files:
+        file, _ = file_data
         if file.is_dir():
             get_modified_files(self, file)
-        if file.is_file():
-            try:
-                # Check if file has been modified since it was last synced
-                _ = db_files.index((file, modification_time))
-            except ValueError:
-                self.mod_times.append((file, modification_time))
+
+        if (
+            file.is_file()
+            and file_data not in db_files
+            and file_data not in self.mod_times
+        ):
+            self.mod_times.append(file_data)
 
         self.cur_file += 1
 
