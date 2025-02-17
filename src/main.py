@@ -39,13 +39,16 @@ class RCloneBackupScript:
         # Dotfiles and synlinks are also excluded in get_files_in_cwd()
 
         file_dir = Path(__file__).resolve().parent
-        self.run_log = file_dir / "run.log"
+        start_time = datetime.now()
+        self.run_log = (
+            file_dir / "logs" / f"{start_time.year % 100}_{start_time.month:02}_run.log"
+        )
         self.db_file = file_dir / "RCloneBackupScript.db"
 
-        start_time = self.write_start_end_times()
+        self.write_start_end_times(start_time)
         self.now: str = start_time.strftime("%Y-%m-%d %H:%M")
         if not check_connection(self, REMOTE_DIRECTORY):
-            _ = self.write_start_end_times(start_time)
+            self.write_start_end_times(datetime.now(), start_time=start_time)
             return
 
         with closing(connect(self.db_file)) as self.db_conn:
@@ -59,19 +62,19 @@ class RCloneBackupScript:
             self.mod_times = get_modified_files(self, cwd=Path(LOCAL_DIRECTORY))
 
             if new_db is True:
-                self.write_start_end_times(start_time)
+                self.write_start_end_times(datetime.now(), start_time=start_time)
                 return  # Only sync if database existed to get around syncing thousands of files
 
             if len(self.mod_times) == 2:
                 dest = REMOTE_DIRECTORY + str(Path.cwd().relative_to(LOCAL_DIRECTORY))
                 if check_log_n_db_eq(self, dest):
-                    self.write_start_end_times(start_time)
+                    self.write_start_end_times(datetime.now(), start_time=start_time)
                     return  # Only sync files if they are different
 
             write_db_mod_files(self)
             sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
 
-            _ = self.write_start_end_times(start_time)
+            self.write_start_end_times(datetime.now(), start_time=start_time)
 
             self.db_conn.commit()
 
@@ -86,17 +89,16 @@ class RCloneBackupScript:
 
         return (int(h), int(m), int(s))
 
-    def write_start_end_times(self, start_time=None):
+    def write_start_end_times(self, now, start_time=None):
         """
         Writes the start and end times to the run log
         """
-        now = datetime.now()
 
         with open(self.run_log, "a", encoding="utf-8") as log_file:
             if not start_time:
                 msg = f"# Start {now.strftime("%Y-%m-%d %H:%M")} #"
                 print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
-                return now
+                return
 
             h, m, s = self.__get_total_time(start_time, now)
             msg = f"# End   {now.strftime("%Y-%m-%d %H:%M")} #"
@@ -113,8 +115,6 @@ class RCloneBackupScript:
                 file=log_file,
             )
 
-            return now
-
 
 if __name__ == "__main__":
     try:
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     except Exception:
         # Logging any unknown exceptions which might happen.
         # Because this program will be called automatically and without anyone watching stdout.
-        run_log = Path(__file__).resolve().parent / "run.log"
+        run_log = Path(__file__).resolve().parent / "logs" / "error.log"
         basicConfig(
             filename=run_log,
             filemode="a",
