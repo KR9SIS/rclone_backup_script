@@ -5,6 +5,7 @@ rclone backup script for backing up local directory files
 from contextlib import closing
 from datetime import datetime
 from logging import ERROR, basicConfig, error
+from os import getpid
 from pathlib import Path
 from sqlite3 import OperationalError, connect
 from traceback import format_exc
@@ -53,7 +54,7 @@ class RCloneBackupScript:
 
         with closing(connect(self.db_file)) as self.db_conn:
             try:
-                log_start_end_times_db(self, self.now, "Start Time")
+                log_start_end_times_db(self, self.now, f"Start Time, PID: {getpid()}")
             except OperationalError as exc:
                 if exc.args[0] != "no such table: Log":
                     raise exc
@@ -122,9 +123,9 @@ if __name__ == "__main__":
     except Exception:
         # Logging any unknown exceptions which might happen.
         # Because this program will be called automatically and without anyone watching stdout.
-        run_log = Path(__file__).resolve().parent / "logs" / "error.log"
+        err_log = Path(__file__).resolve().parent / "logs" / "error.log"
         basicConfig(
-            filename=run_log,
+            filename=err_log,
             filemode="a",
             format="\n%(asctime)s - %(levelname)s - %(message)s",
             level=ERROR,
