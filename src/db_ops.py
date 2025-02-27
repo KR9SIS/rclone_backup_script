@@ -169,7 +169,10 @@ def get_num_synced_files(self) -> int:
     ret = self.db_conn.execute(
         """
         SELECT COUNT(file_path) FROM Log
-        WHERE date = ? AND synced = 1 AND file_path != 'Start Time'
+        WHERE date = ?
+            AND synced = 1
+            AND file_path NOT LIKE 'Start Time, PID: %'
+            AND file_path NOT LIKE 'End Time, Duration %'
         """,
         (self.now,),
     ).fetchone()[0]
