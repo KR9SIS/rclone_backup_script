@@ -36,7 +36,11 @@ class RCloneBackupScript:
             self.mod_times: list[tuple[Path, str]] = []
             self.file_count = -99999
             self.cur_file = 0
-            self.excluded_paths: set[str] = {"__pycache__", "node_modules"}
+            self.excluded_paths: set[str] = {
+                "__pycache__",
+                "node_modules",
+                "firm_extract_NOBACKUP",
+            }
             # Dotfiles and synlinks are also excluded in get_files_in_cwd()
 
             file_dir = Path(__file__).resolve().parent
