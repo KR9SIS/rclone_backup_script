@@ -82,6 +82,10 @@ class RCloneBackupScript:
                         )
                         return  # Only sync files if they are different
 
+                if len(self.mod_times) > 200:
+                    # Only sync 200 files at a time
+                    self.mod_times = self.mod_times[:200]
+
                 write_db_mod_files(self)
                 sync(self, LOCAL_DIRECTORY, REMOTE_DIRECTORY)
 
