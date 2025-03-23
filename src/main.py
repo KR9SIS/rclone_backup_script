@@ -50,6 +50,7 @@ class RCloneBackupScript:
                 / "logs"
                 / f"{self.start_time.year % 100}_{self.start_time.month:02}_run.log"
             )
+            self.err_log = file_dir / "logs" / "error.log"
             self.db_file = file_dir / "RCloneBackupScript.db"
 
             self.write_start_end_times(self.start_time, self.run_log)
