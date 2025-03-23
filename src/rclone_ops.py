@@ -77,12 +77,15 @@ def sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         cmd_with_file.extend(["--include", str(rel_file_path)])
 
         try:
-            run(cmd_with_file, check=True, timeout=600)
+            run(cmd_with_file, check=True, timeout=1200)
             update_db_mod_file(self, str(file_path), mod_time)
 
-        except (CalledProcessError, TimeoutExpired):
+        except (CalledProcessError, TimeoutExpired) as e:
             sync_fails += 1
             print("\nFAILED ", end="")
+            with open(self.err_log, "a", encoding="utf-8") as err_file:
+                print(f"\n{'*'*30}\n", file=err_file)
+                print(e, file=err_file)
 
         if self.stdout:
             file_num += 1
