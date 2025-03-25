@@ -1,0 +1,4 @@
+- .**
+- **/__pycache__/**
+- **/node_modules/**
+- **/firm_extract_NOBACKUP/**
