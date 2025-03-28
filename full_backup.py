@@ -2,56 +2,58 @@
 Script for backing up the entire PDrive folder
 """
 
-from io import TextIOWrapper
 from pathlib import Path
 from subprocess import CalledProcessError, run
 
+SOURCE = "/home/kr9sis/PDrive"
+DESTINATION = "PDrive:"
+FILTER_FILE = (
+    "/home/kr9sis/PDrive/Code/Py/rclone_backup_script/repo/rclone_sync_filter.txt"
+)
 
-def sync_dir(path: str, filter_file: str, out_file: TextIOWrapper, indent: int = 0):
+
+def sync_subdir(path: Path):
     """
-    Calls rclone with the PDrive + the given path
+    If path is directory, sync each individual subdirectories
     """
-    print("#", " " * indent, f"{path}:")
+    if path.is_dir():
+        for sub_path in path.iterdir():
+            sync_dir(sub_path)
+    else:
+        print(path)
+
+
+def sync_dir(path: Path):
+    """
+    Sync given directory
+    """
+    rel_path = path.relative_to(SOURCE)
+    command = [
+        "rclone",
+        "sync",
+        SOURCE,
+        DESTINATION,
+        "--filter-from",
+        FILTER_FILE,
+        "--filter",
+        f"+ {rel_path}",
+    ]
+
+    print(" ".join(command), "\n")
+
     try:
-        ret = run(
-            [
-                "rclone",
-                "sync",
-                f"~/PDrive{path}",
-                f"PDrive:{path}",
-                f"--filter-from {filter_file}",
-            ],
-            check=True,
-            timeout=10800,  # 3 hours
-            capture_output=True,
-        )
-
-        if ret.stderr:
-            print(" " * indent, ret.stderr, file=out_file)
-            cwd = Path(path)
-            if cwd.is_dir():
-                for sub_path in cwd.iterdir():
-                    sync_dir(str(sub_path), filter_file, out_file, indent + 1)
-
-        if ret.stdout:
-            print(" " * indent, ret.stdout, file=out_file)
+        run(command, capture_output=False, timeout=25200, check=True)
 
     except (TimeoutError, CalledProcessError) as e:
-        print(" " * indent, e, file=out_file)
-        cwd = Path(path)
-        if cwd.is_dir():
-            for sub_path in cwd.iterdir():
-                sync_dir(str(sub_path), filter_file, out_file, indent + 1)
+        print(e)
+        sync_subdir(path)
 
 
 def main():
     """
-    Calls sync_dir
+    Start syncing SOURCE to DESTINATION
     """
-    with open("full_backup_out.md", "w", encoding="utf-8") as out_file:
-        sync_dir(
-            "/", str(Path(__file__).parent.joinpath("rclone_sync_filter")), out_file
-        )
+    sync_dir(Path("/home/kr9sis/PDrive"))
 
 
 if __name__ == "__main__":
