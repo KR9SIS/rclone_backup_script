@@ -33,27 +33,6 @@ def check_connection(self, DESTINATION_PATH) -> bool:
         return False
 
 
-def check_log_n_db_eq(self, dest: str):
-    """
-    Check if RCloneBackupScript.db and run.log are equal between source and remote
-    """
-    cmd = [
-        "rclone",
-        "check",
-        str(Path.cwd()),
-        dest,
-        "--include",
-        str(self.run_log.name),
-        "--include",
-        str(self.db_file.name),
-    ]
-    try:
-        run(cmd, check=True, timeout=180)
-        return True
-    except (CalledProcessError, TimeoutExpired):
-        return False
-
-
 def sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
     """
     Sync modified files to Proton Drive

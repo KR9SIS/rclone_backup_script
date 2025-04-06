@@ -12,7 +12,7 @@ from traceback import format_exc
 
 from db_ops import get_count_or_setup_db, log_start_end_times_db, write_db_mod_files
 from dir_ops import get_modified_files
-from rclone_ops import check_connection, check_log_n_db_eq, sync
+from rclone_ops import check_connection, sync
 
 
 class RCloneBackupScript:
@@ -73,15 +73,13 @@ class RCloneBackupScript:
                     )
                     return  # Only sync if database existed to get around syncing thousands of files
 
-                if len(self.mod_times) == 2:
-                    dest = REMOTE_DIRECTORY + str(
-                        Path.cwd().relative_to(LOCAL_DIRECTORY)
+                if len(self.mod_times) == 3:
+                    with open(self.run_log, "a", encoding="utf-8") as run_log:
+                        print("# Files 0    Exiting     #", file=run_log)
+                    self.write_start_end_times(
+                        datetime.now(), self.run_log, start_time=self.start_time
                     )
-                    if check_log_n_db_eq(self, dest):
-                        self.write_start_end_times(
-                            datetime.now(), self.run_log, start_time=self.start_time
-                        )
-                        return  # Only sync files if they are different
+                    return  # Only sync files if they are different
 
                 if len(self.mod_times) > 200:
                     # Only sync 200 files at a time
