@@ -40,6 +40,7 @@ class RCloneBackupScript:
                 "__pycache__",
                 "node_modules",
                 "firm_extract_NOBACKUP",
+                "squashfs-root",
             }
             # Dotfiles and synlinks are also excluded in get_files_in_cwd()
 
