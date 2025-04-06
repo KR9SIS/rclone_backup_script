@@ -2,7 +2,7 @@
 Operations pertaining to the sqlite database
 """
 
-from datetime import datetime
+from pathlib import Path
 from sqlite3 import OperationalError
 
 
@@ -178,3 +178,24 @@ def get_num_synced_files(self) -> int:
     ).fetchone()[0]
 
     return ret if ret else 0
+
+
+def get_fails(self) -> list[tuple[Path, str]]:
+    """
+    Gets all failed syncs from db and tries to returns them
+    """
+    ret = self.db_conn.execute(
+        """
+        SELECT * FROM Log AS l1
+        WHERE l1.synced = 0
+        AND NOT EXISTS (
+            SELECT 1
+            FROM Log AS l2
+            WHERE l2.file_path = l1.file_path
+            AND l2.synced = 1
+            AND l2.date > l1.date
+        )
+        """
+    ).fetchall()
+
+    return [(Path(file_path), mod_time) for mod_time, file_path, _ in ret]
