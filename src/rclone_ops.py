@@ -56,7 +56,7 @@ def sync(self, SOURCE_PATH: str, DESTINATION_PATH: str):
         cmd_with_file.extend(["--include", str(rel_file_path)])
 
         try:
-            run(cmd_with_file, check=True, timeout=3600)
+            run(cmd_with_file, check=True, timeout=36000)
             update_db_mod_file(self, str(file_path), mod_time)
 
         except (CalledProcessError, TimeoutExpired) as e:
