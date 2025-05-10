@@ -191,16 +191,17 @@ def get_fails(var_storer: VariableStorer) -> list[tuple[Path, str]]:
     """
     ret = var_storer.db_conn.execute(
         """
-        SELECT * FROM Log AS l1
-        WHERE l1.synced = 0
+        SELECT MAX(date), file_path
+        FROM LOG AS l1 WHERE l1.synced = 0
         AND NOT EXISTS (
             SELECT 1
             FROM Log AS l2
-            WHERE l2.file_path = l1.file_path
+            WHERE l1.file_path = l2.file_path
             AND l2.synced = 1
-            AND l2.date > l1.date
+            AND l1.date < l2.date
         )
+        GROUP BY file_path
         """
     ).fetchall()
 
-    return [(Path(file_path), mod_time) for mod_time, file_path, _ in ret]
+    return [(Path(file_path), mod_time) for mod_time, file_path in ret]
