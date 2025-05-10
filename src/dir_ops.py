@@ -156,7 +156,7 @@ def __check_if_modified(
         if file.is_dir():
             get_modified_files(var_storer, file)
 
-        if (
+        elif (
             file.is_file()
             and file_data not in db_files
             and file_data not in var_storer.mod_times
