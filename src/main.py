@@ -43,6 +43,8 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
 
             new_db = get_count_or_setup_db(var_storer)
             if RETRY_FAILS:
+                if STDOUT:
+                    print("Retrying fails")
                 var_storer.mod_times = get_fails(var_storer)
             else:
                 var_storer.mod_times = get_modified_files(var_storer, var_storer.CWD)
