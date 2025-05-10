@@ -7,8 +7,8 @@ In it I am using Python and SQLite. Python for the logic and SQLite to keep a da
 All of the program code is confined within the src folder.
 
 ### Breaking down the program in steps:
-1. It starts in main.py setting up the variables
-2. Starts by logging at what time program excution started.
+1. It starts in main.py by creating the VariableStorer class to set up the variables
+2. Then it logs at what time program excution started.
 3. Calls rclone_check_connection() to make sure that the computer is online and can sync files before going through local storage and attempting sync. If the connection fails, then the program jumps to step 9.
 4. Uses with closing from contextlib to create the database connection, ensuring it will be closed after use.
 5. Calls check_or_setup_database() to try and QUERY the database by getting failed syncs from previous runs and if that's not possible set up the database.
