@@ -8,8 +8,10 @@ from pathlib import Path
 from subprocess import CalledProcessError, TimeoutExpired, run
 from textwrap import dedent
 
+from helpers import VariableStorer
 
-def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
+
+def __get_files_in_cwd(var_storer, cwd: Path) -> list[tuple[str, str]]:
     """
     Function to get all files within the current working directory
     and their modification time and return a str containing that
@@ -20,7 +22,7 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
         if (
             file.name.startswith(".")
             or file.is_symlink()
-            or any(excluded in str(file) for excluded in self.excluded_paths)
+            or any(excluded in str(file) for excluded in var_storer.excluded_paths)
         ):
             # Get rid of all dotfiles, symlinks and explicitly excluded files defined in main.py
             continue
@@ -34,7 +36,7 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
             ret.append((filename, mod_time))
 
         except (CalledProcessError, TimeoutExpired) as e:
-            with open(self.run_log, "a", encoding="utf-8") as log_file:
+            with open(var_storer.run_log, "a", encoding="utf-8") as log_file:
                 now = datetime.now().strftime("%Y-%m-%d %H:%M")
                 print(
                     dedent(
@@ -49,12 +51,12 @@ def __get_files_in_cwd(self, cwd: Path) -> list[tuple[str, str]]:
     return ret
 
 
-def __create_db_files_list(self, cwd: Path) -> list[tuple[Path, str]]:
+def __create_db_files_list(var_storer, cwd: Path) -> list[tuple[Path, str]]:
     """
     Gets the files from the DB and turns them into a
     list of tuples containing file paths and mod times
     """
-    db_files = self.db_conn.execute(
+    db_files = var_storer.db_conn.execute(
         """
             SELECT file_path, modification_time
             FROM Times
@@ -67,7 +69,7 @@ def __create_db_files_list(self, cwd: Path) -> list[tuple[Path, str]]:
 
 
 def __add_or_del_from_db(
-    self, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
+    var_storer, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
 ):
     """
     Clean up difference between local directory and database
@@ -84,14 +86,14 @@ def __add_or_del_from_db(
                 (file_tup[1] for file_tup in files if file_tup[0] == file), None
             )
             if file.is_dir():
-                self.db_conn.execute(
+                var_storer.db_conn.execute(
                     """
                         INSERT INTO Folders(folder_path)
                         VALUES(?);
                         """,
                     (str(file),),
                 )
-                self.db_conn.execute(
+                var_storer.db_conn.execute(
                     """
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
@@ -99,7 +101,7 @@ def __add_or_del_from_db(
                     (str(parent_dir), str(file), mod_time),
                 )
             else:
-                self.db_conn.execute(
+                var_storer.db_conn.execute(
                     """
                         INSERT INTO Times(parent_path, file_path, modification_time)
                         VALUES(?,?,?);
@@ -107,14 +109,14 @@ def __add_or_del_from_db(
                     (str(parent_dir), str(file), mod_time),
                 )
 
-            self.mod_times.append((file, mod_time))
+            var_storer.mod_times.append((file, mod_time))
 
         elif file not in local_files:  # File was deleted locally
             mod_time = next(
                 (file_tup[1] for file_tup in db_files if file_tup[0] == file), None
             )
 
-            self.db_conn.execute(
+            var_storer.db_conn.execute(
                 """
                     DELETE FROM Times 
                     WHERE parent_path=?;
@@ -122,14 +124,14 @@ def __add_or_del_from_db(
                 (str(file),),
             )
 
-            self.db_conn.execute(
+            var_storer.db_conn.execute(
                 """
                     DELETE FROM Folders
                     WHERE folder_path=?;
                     """,
                 (str(file),),
             )
-            self.db_conn.execute(
+            var_storer.db_conn.execute(
                 """
                     DELETE FROM Times
                     WHERE file_path=?;
@@ -137,11 +139,11 @@ def __add_or_del_from_db(
                 (str(file),),
             )
 
-            self.mod_times.append((file, mod_time))
+            var_storer.mod_times.append((file, mod_time))
 
 
 def __check_if_modified(
-    self, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
+    var_storer, files: list[tuple[Path, str]], db_files: list[tuple[Path, str]]
 ):
     """
     Check the given files and see if they have been
@@ -152,38 +154,38 @@ def __check_if_modified(
     for file_data in files:
         file, _ = file_data
         if file.is_dir():
-            get_modified_files(self, file)
+            get_modified_files(var_storer, file)
 
         if (
             file.is_file()
             and file_data not in db_files
-            and file_data not in self.mod_times
+            and file_data not in var_storer.mod_times
         ):
-            self.mod_times.append(file_data)
+            var_storer.mod_times.append(file_data)
 
-        self.cur_file += 1
+        var_storer.cur_file += 1
 
 
-def get_modified_files(self, cwd: Path):
+def get_modified_files(var_storer: VariableStorer, cwd: Path):
     """
     Recursively checks the cwd and every subdirectory within it
     """
-    if self.stdout:
-        if self.file_count != -99999:
-            percent = round((self.cur_file / self.file_count) * 100)
+    if var_storer.STDOUT:
+        if var_storer.file_count != -99999:
+            percent = round((var_storer.cur_file / var_storer.file_count) * 100)
             print(f"{percent}%", end=" ")
         print(f"In {cwd}")
 
-    files = __get_files_in_cwd(self, cwd)
+    files = __get_files_in_cwd(var_storer, cwd)
     if not files:
-        return self.mod_times
+        return var_storer.mod_times
 
     files = [(Path(f_tup[0]), f_tup[1]) for f_tup in files]
-    db_files = __create_db_files_list(self, cwd)
+    db_files = __create_db_files_list(var_storer, cwd)
 
     if len(files) != len(db_files) or files != db_files:
-        __add_or_del_from_db(self, files, db_files)
+        __add_or_del_from_db(var_storer, files, db_files)
 
-    __check_if_modified(self, files, db_files)
+    __check_if_modified(var_storer, files, db_files)
 
-    return self.mod_times
+    return var_storer.mod_times

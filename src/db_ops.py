@@ -4,27 +4,28 @@ Operations pertaining to the sqlite database
 
 from pathlib import Path
 from sqlite3 import OperationalError
+from helpers import VariableStorer
 
 
-def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
+def get_count_or_setup_db(var_storer: VariableStorer) -> bool:
     """
     Function to set up SQLite database if it doesn't exist
     and grab all files which failed to sync last time program was run
     """
     try:
         # Check if database is already set up
-        self.file_count = self.db_conn.execute(
+        var_storer.file_count = var_storer.db_conn.execute(
             "SELECT COUNT(file_path) FROM Times"
         ).fetchone()[0]
         return False
 
     except OperationalError:
         # If not, then set it up
-        self.db_conn.execute("PRAGMA foreign_keys = ON;")
-        self.db_conn.execute("DROP TABLE IF EXISTS Times;")
-        self.db_conn.execute("DROP TABLE IF EXISTS Folders;")
+        var_storer.db_conn.execute("PRAGMA foreign_keys = ON;")
+        var_storer.db_conn.execute("DROP TABLE IF EXISTS Times;")
+        var_storer.db_conn.execute("DROP TABLE IF EXISTS Folders;")
 
-        self.db_conn.execute(
+        var_storer.db_conn.execute(
             """
             CREATE TABLE Folders (
                 folder_path TEXT PRIMARY KEY
@@ -32,15 +33,15 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
             """
         )
 
-        self.db_conn.execute(
+        var_storer.db_conn.execute(
             """
             INSERT INTO Folders (folder_path)
             VALUES (?);
             """,
-            (LOCAL_DIRECTORY,),
+            (var_storer.LOCAL_DIR,),
         )
 
-        self.db_conn.execute(
+        var_storer.db_conn.execute(
             """
             CREATE TABLE Times (
                 parent_path TEXT,
@@ -51,14 +52,14 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
             """
         )
 
-        self.db_conn.execute(
+        var_storer.db_conn.execute(
             """
             CREATE TABLE Dates (
                 date TEXT PRIMARY KEY
             );
             """
         )
-        self.db_conn.execute(
+        var_storer.db_conn.execute(
             """
             CREATE TABLE Log (
                 date TEXT,
@@ -71,16 +72,16 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
             """
         )
 
-        self.db_conn.execute(
+        var_storer.db_conn.execute(
             """
             CREATE INDEX idx_log_file_path_synced_date
             ON Log(file_path, synced, date);
             """
         )
 
-        self.db_conn.commit()
+        var_storer.db_conn.commit()
 
-        with open(self.run_log, "a", encoding="utf-8") as log_file:
+        with open(var_storer.run_log, "a", encoding="utf-8") as log_file:
             print(
                 f"# Database created{' '*7}#\n# Syncing future changes #\n{'#'*26}",
                 file=log_file,
@@ -89,11 +90,11 @@ def get_count_or_setup_db(self, LOCAL_DIRECTORY) -> bool:
         return True
 
 
-def log_start_end_times_db(self, time: str, msg: str):
+def log_start_end_times_db(var_storer: VariableStorer, time: str, msg: str):
     """
     Logs the start and end times of the program when program runs
     """
-    self.db_conn.execute(
+    var_storer.db_conn.execute(
         """
         INSERT INTO Log (date, file_path, synced) VALUES (?, ?, 1)
         """,
@@ -101,56 +102,60 @@ def log_start_end_times_db(self, time: str, msg: str):
     )
 
 
-def write_db_mod_files(self):
+def write_db_mod_files(var_storer: VariableStorer):
     """
     Writes mod files to database to keep track of which files were modified
     and writes the number of modified files to the run log
     """
-    file_data = [(self.now, str(file_path[0]), 0) for file_path in self.mod_times]
+    file_data = [
+        (var_storer.now, str(file_path[0]), 0) for file_path in var_storer.mod_times
+    ]
 
-    if self.stdout:
+    if var_storer.STDOUT:
         print("\nModified files:")
-        _ = [print(file_path[0]) for file_path in self.mod_times]
+        _ = [print(file_path[0]) for file_path in var_storer.mod_times]
         print()
 
-    self.db_conn.execute(
+    var_storer.db_conn.execute(
         """
         INSERT OR IGNORE INTO Dates (date) VALUES (?)
         """,
-        (self.now,),
+        (var_storer.now,),
     )
 
-    self.db_conn.executemany(
+    var_storer.db_conn.executemany(
         """
         INSERT INTO Log (date, file_path, synced) VALUES (?, ?, ?)
         """,
         file_data,
     )
 
-    self.db_conn.commit()
+    var_storer.db_conn.commit()
 
-    with open(self.run_log, "a", encoding="utf-8") as log_file:
-        mod_nums = f"# Files {len(self.mod_times)} "
+    with open(var_storer.run_log, "a", encoding="utf-8") as log_file:
+        mod_nums = f"# Files {len(var_storer.mod_times)} "
         if len(mod_nums) < 13:
             str_diff = 13 - len(mod_nums)
             mod_nums += " " * str_diff
         print(mod_nums, file=log_file, end="")
 
 
-def update_db_mod_file(self, file_path: str, modification_time: str):
+def update_db_mod_file(
+    var_storer: VariableStorer, file_path: str, modification_time: str
+):
     """
     Function which updates the sync status and modification_time for a specific file path
     """
-    self.db_conn.execute(
+    var_storer.db_conn.execute(
         """
         UPDATE Log
         SET synced = ?
         WHERE date = ? AND file_path = ?
         """,
-        (1, self.now, file_path),
+        (1, var_storer.now, file_path),
     )
 
-    self.db_conn.execute(
+    var_storer.db_conn.execute(
         """
         UPDATE Times
         SET modification_time = ?
@@ -158,15 +163,15 @@ def update_db_mod_file(self, file_path: str, modification_time: str):
         """,
         (modification_time, file_path),
     )
-    self.db_conn.commit()
+    var_storer.db_conn.commit()
 
 
-def get_num_synced_files(self) -> int:
+def get_num_synced_files(var_storer: VariableStorer) -> int:
     """
     Counts the number of files which synced this run and returns it
     :return: The number of files which successfully synced this time around
     """
-    ret = self.db_conn.execute(
+    ret = var_storer.db_conn.execute(
         """
         SELECT COUNT(file_path) FROM Log
         WHERE date = ?
@@ -174,17 +179,17 @@ def get_num_synced_files(self) -> int:
             AND file_path NOT LIKE 'Start Time, PID: %'
             AND file_path NOT LIKE 'End Time, Duration %'
         """,
-        (self.now,),
+        (var_storer.now,),
     ).fetchone()[0]
 
     return ret if ret else 0
 
 
-def get_fails(self) -> list[tuple[Path, str]]:
+def get_fails(var_storer: VariableStorer) -> list[tuple[Path, str]]:
     """
     Gets all failed syncs from db and tries to returns them
     """
-    ret = self.db_conn.execute(
+    ret = var_storer.db_conn.execute(
         """
         SELECT * FROM Log AS l1
         WHERE l1.synced = 0
