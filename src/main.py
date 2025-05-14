@@ -26,9 +26,16 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
     """
     Main function for the rclone backup script
     """
+    if not isinstance(STDOUT, bool):
+        raise TypeError("STDOUT must be of type bool")
+    if not isinstance(RETRY_FAILS, bool):
+        raise TypeError("RETRY_FAILs must be of type bool")
+    if not isinstance(CWD, Path) or not CWD.exists():
+        raise TypeError("CWD must be of type path and exist")
+
     var_storer = VariableStorer(STDOUT, CWD)
     try:
-        write_start_end_times(var_storer, var_storer.start_time)
+        write_start_end_times(var_storer, var_storer.start_time, RETRYING=RETRY_FAILS)
 
         with closing(connect(var_storer.db_file)) as var_storer.db_conn:
             log_start_end_times_db(
@@ -37,7 +44,9 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
 
             if not check_connection(var_storer):
                 write_start_end_times(
-                    var_storer, datetime.now(), start_time=var_storer.start_time
+                    var_storer,
+                    datetime.now(),
+                    start_time=var_storer.start_time,
                 )
                 return
 
@@ -51,7 +60,9 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
 
             if new_db is True:
                 write_start_end_times(
-                    var_storer, datetime.now(), start_time=var_storer.start_time
+                    var_storer,
+                    datetime.now(),
+                    start_time=var_storer.start_time,
                 )
                 return  # Only sync if database existed to get around syncing thousands of files
 
@@ -59,7 +70,9 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
                 with open(var_storer.run_log, "a", encoding="utf-8") as run_log:
                     print("# Files 0    Exiting     #", file=run_log)
                 write_start_end_times(
-                    var_storer, datetime.now(), start_time=var_storer.start_time
+                    var_storer,
+                    datetime.now(),
+                    start_time=var_storer.start_time,
                 )
                 return  # Only sync files if they are different
 
@@ -70,7 +83,9 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
             write_db_mod_files(var_storer)
             sync(var_storer)
             write_start_end_times(
-                var_storer, datetime.now(), start_time=var_storer.start_time
+                var_storer,
+                datetime.now(),
+                start_time=var_storer.start_time,
             )
             var_storer.db_conn.commit()
 
@@ -84,10 +99,14 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
 
             end_time = datetime.now()
             write_start_end_times(
-                var_storer, end_time, start_time=var_storer.start_time
+                var_storer,
+                end_time,
+                start_time=var_storer.start_time,
             )
 
-            write_start_end_times(var_storer, var_storer.start_time, error=True)
+            write_start_end_times(
+                var_storer, var_storer.start_time, RETRYING=RETRY_FAILS, error=True
+            )
             basicConfig(
                 filename=var_storer.err_log,
                 filemode="a",
@@ -96,7 +115,10 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
             )
             error(format_exc())
             write_start_end_times(
-                var_storer, end_time, start_time=var_storer.start_time, error=True
+                var_storer,
+                end_time,
+                start_time=var_storer.start_time,
+                error=True,
             )
             var_storer.db_conn.commit()
 

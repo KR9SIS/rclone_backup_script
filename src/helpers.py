@@ -46,7 +46,11 @@ class VariableStorer:
 
 
 def write_start_end_times(
-    var_storer: VariableStorer, now: datetime, start_time=None, error=False
+    var_storer: VariableStorer,
+    now: datetime,
+    start_time=None,
+    error=False,
+    RETRYING=False,
 ):
     from db_ops import log_start_end_times_db
 
@@ -70,9 +74,14 @@ def write_start_end_times(
     ) as log_file:
 
         if not start_time:
-            msg = f"# Start {now.strftime("%Y-%m-%d %H:%M")} #"
-            print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
-            return
+            if RETRYING:
+                msg = f"# Retry {now.strftime("%Y-%m-%d %H:%M")} #"
+                print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
+                return
+            else:
+                msg = f"# Start {now.strftime("%Y-%m-%d %H:%M")} #"
+                print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
+                return
 
         h, m, s = get_total_time(start_time, now)
         msg = f"# End   {now.strftime("%Y-%m-%d %H:%M")} #"
