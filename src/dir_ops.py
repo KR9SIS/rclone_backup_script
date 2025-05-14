@@ -109,7 +109,7 @@ def __add_or_del_from_db(
                     (str(parent_dir), str(file), mod_time),
                 )
 
-            var_storer.mod_times.append((file, mod_time))
+                var_storer.mod_times.append((file, mod_time))
 
         elif file not in local_files:  # File was deleted locally
             mod_time = next(
@@ -139,7 +139,8 @@ def __add_or_del_from_db(
                 (str(file),),
             )
 
-            var_storer.mod_times.append((file, mod_time))
+            if file.is_file:
+                var_storer.mod_times.append((file, mod_time))
 
 
 def __check_if_modified(
