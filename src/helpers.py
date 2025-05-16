@@ -58,17 +58,6 @@ def write_start_end_times(
     Writes the start and end times to the run log
     """
 
-    def get_total_time(start_time, end_time):
-        """
-        Calculates the difference in hours, minutes, and seconds between start_time and end_time
-        """
-        timedelta_tt = end_time - start_time
-        total_seconds = timedelta_tt.total_seconds()
-        h, remainder = divmod(total_seconds, 3600)
-        m, s = divmod(remainder, 60)
-
-        return (int(h), int(m), int(s))
-
     with open(
         var_storer.err_log if error else var_storer.run_log, "a", encoding="utf-8"
     ) as log_file:
@@ -83,9 +72,14 @@ def write_start_end_times(
                 print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
                 return
 
-        h, m, s = get_total_time(start_time, now)
+        # Get total time of script run
+        timedelta_tt = now - start_time
+        total_seconds = timedelta_tt.total_seconds()
+        h, remainder = divmod(total_seconds, 3600)
+        m, s = divmod(remainder, 60)
+
         msg = f"# End   {now.strftime("%Y-%m-%d %H:%M")} #"
-        dur = f"# Time  {h} h. {m} m. {s} s."
+        dur = f"# Time  {int(h)} h. {int(m)} m. {int(s)} s."
 
         if not error:
             log_start_end_times_db(
