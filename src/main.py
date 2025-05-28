@@ -66,7 +66,7 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
                 )
                 return  # Only sync if database existed to get around syncing thousands of files
 
-            if len(var_storer.mod_times) == 3:
+            if not RETRY_FAILS and len(var_storer.mod_times) == 3:
                 with open(var_storer.run_log, "a", encoding="utf-8") as run_log:
                     print("# Files 0    Exiting     #", file=run_log)
                 write_start_end_times(
