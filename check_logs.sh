@@ -22,7 +22,7 @@ EOF
 
 echo "\nCount of files which did not sync:"
 sqlite3 src/RCloneBackupScript.db <<EOF
-SELECT COUNT(*)
+SELECT COUNT(DISTINCT file_path)
 FROM Log AS l1
 WHERE l1.synced = 0
 AND NOT EXISTS (
