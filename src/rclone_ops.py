@@ -66,8 +66,10 @@ def sync(var_storer: VariableStorer):
             sync_fails += 1
             print("\nFAILED ", end="")
             with open(var_storer.err_log, "a", encoding="utf-8") as err_file:
-                print(f"\n{'*'*30}\n", file=err_file)
+                print(f"\n{'#'*80}", file=err_file)
+                print(var_storer.start_time, file=err_file)
                 print(e, file=err_file)
+                print(f"{'#'*80}", file=err_file)
 
         if var_storer.STDOUT:
             file_num += 1
