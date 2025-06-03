@@ -77,6 +77,8 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
                 return  # Only sync files if they are different
 
             elif len(var_storer.mod_times) > 200:
+                if STDOUT:
+                    print(f"{len(var_storer.mod_times)} modified files\nModified files list will be truncated down to 200")
                 # Only sync 200 files at a time
                 var_storer.mod_times = var_storer.mod_times[:200]
 
