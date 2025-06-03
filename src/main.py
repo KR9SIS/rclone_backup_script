@@ -22,7 +22,7 @@ from helpers import VariableStorer, write_start_end_times
 from rclone_ops import check_connection, sync
 
 
-def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
+def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool, COUNT_MODF: bool):
     """
     Main function for the rclone backup script
     """
@@ -30,12 +30,14 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
         raise TypeError("STDOUT must be of type bool")
     if not isinstance(RETRY_FAILS, bool):
         raise TypeError("RETRY_FAILs must be of type bool")
+    if not isinstance(COUNT_MODF, bool):
+        raise TypeError("COUNT_MODE must be of type bool")
     if not isinstance(CWD, Path) or not CWD.exists():
         raise TypeError("CWD must be of type path and exist")
 
     var_storer = VariableStorer(STDOUT, CWD)
     try:
-        write_start_end_times(var_storer, var_storer.start_time, RETRYING=RETRY_FAILS)
+        write_start_end_times(var_storer, var_storer.start_time, RETRYING=RETRY_FAILS, COUNTING=COUNT_MODF)
 
         with closing(connect(var_storer.db_file)) as var_storer.db_conn:
             log_start_end_times_db(
@@ -57,6 +59,15 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool):
                 var_storer.mod_times = get_fails(var_storer)
             else:
                 var_storer.mod_times = get_modified_files(var_storer, var_storer.CWD)
+
+            if COUNT_MODF:
+                print(f"\n{len(var_storer.mod_times)} modified files")
+                write_start_end_times(
+                    var_storer,
+                    datetime.now(),
+                    start_time=var_storer.start_time,
+                )
+                return
 
             if new_db is True:
                 write_start_end_times(
@@ -141,13 +152,21 @@ if __name__ == "__main__":
         help="Chose where to look for files to sync",
         default="/home/kr9sis/PDrive/",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "-r",
         "--retry_fails",
         help="Retry files which failed to sync",
         action="store_true",
         default=False,
     )
+    group.add_argument(
+        "-c",
+        "--count",
+        help="Count how many files are modified and need to be synced",
+        action="store_true",
+        default=False,
+    )
     args = parser.parse_args()
 
-    main(args.stdout, args.cwd, args.retry_fails)
+    main(args.stdout, args.cwd, args.retry_fails, args.count)

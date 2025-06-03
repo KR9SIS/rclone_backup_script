@@ -51,6 +51,7 @@ def write_start_end_times(
     start_time=None,
     error=False,
     RETRYING=False,
+    COUNTING=False,
 ):
     from db_ops import log_start_end_times_db
 
@@ -65,13 +66,14 @@ def write_start_end_times(
         if not start_time:
             if RETRYING:
                 msg = f"# Retry {now.strftime("%Y-%m-%d %H:%M")} #"
-                print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
-                return
+            elif COUNTING:
+                 msg = f"# Count {now.strftime("%Y-%m-%d %H:%M")} #"
             else:
                 msg = f"# Start {now.strftime("%Y-%m-%d %H:%M")} #"
-                print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
-                return
 
+            print(f"\n{"#"*len(msg)}\n{msg}", file=log_file)
+            return
+        
         # Get total time of script run
         timedelta_tt = now - start_time
         total_seconds = timedelta_tt.total_seconds()
