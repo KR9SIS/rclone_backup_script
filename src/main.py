@@ -70,6 +70,8 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool, COUNT_MODF: bool):
                 return
 
             if new_db is True:
+                if STDOUT:
+                    print("New database detected, sync cancelled")
                 write_start_end_times(
                     var_storer,
                     datetime.now(),
