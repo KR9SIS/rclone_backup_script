@@ -61,7 +61,11 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool, COUNT_MODF: bool):
                 var_storer.mod_times = get_modified_files(var_storer, var_storer.CWD)
 
             if COUNT_MODF:
-                print(f"\n{len(var_storer.mod_times)} modified files")
+                if STDOUT:
+                    print(f"\n{len(var_storer.mod_times)} modified files")
+                with open(var_storer.run_log, "a", encoding="utf-8") as run_log:
+                    msg = f"# Files {len(var_storer.mod_times):<7}{'Exiting':<10}#"
+                    print(msg, file=run_log)
                 write_start_end_times(
                     var_storer,
                     datetime.now(),
