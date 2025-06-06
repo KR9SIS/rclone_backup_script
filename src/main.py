@@ -40,10 +40,6 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool, COUNT_MODF: bool):
         write_start_end_times(var_storer, var_storer.start_time, RETRYING=RETRY_FAILS, COUNTING=COUNT_MODF)
 
         with closing(connect(var_storer.db_file)) as var_storer.db_conn:
-            log_start_end_times_db(
-                var_storer, var_storer.now, f"Start Time, PID: {getpid()}"
-            )
-
             if not check_connection(var_storer):
                 write_start_end_times(
                     var_storer,
@@ -53,6 +49,10 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool, COUNT_MODF: bool):
                 return
 
             new_db = get_count_or_setup_db(var_storer)
+            log_start_end_times_db(
+                var_storer, var_storer.now, f"Start Time, PID: {getpid()}"
+            )
+
             if RETRY_FAILS:
                 if STDOUT:
                     print("Retrying fails")
