@@ -109,7 +109,6 @@ def main(STDOUT: bool, CWD: Path, RETRY_FAILS: bool, COUNT_MODF: bool):
             var_storer.db_conn.commit()
 
     except (Exception, IntegrityError, OperationalError) as exc:
-        pass
         # Logging any unknown exceptions which might happen.
         # Because this program will be called automatically and without anyone watching stdout.
         with closing(connect(var_storer.db_file)) as var_storer.db_conn:

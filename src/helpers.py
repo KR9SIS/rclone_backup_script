@@ -33,12 +33,11 @@ class VariableStorer:
         self.start_time: datetime = datetime.now()
         self.now: str = self.start_time.strftime("%Y-%m-%d %H:%M")
 
-        self.run_log: Path = (
-            file_dir
-            / "logs"
-            / f"{self.start_time.year % 100}_{self.start_time.month:02}_run.log"
-        )
-        self.err_log: Path = file_dir / "logs" / "error.log"
+        date = f"{self.start_time.year % 100}_{self.start_time.month:02}"
+        self.run_log: Path = (file_dir / "logs" / f"{date}_run.log")
+        self.err_log: Path = (file_dir / "logs" / f"{date}_error.log")
+        del date
+        
         self.db_file: Path = file_dir / "RCloneBackupScript.db"
         del file_dir
 
